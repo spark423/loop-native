@@ -5,6 +5,8 @@ var User = require('../models/user');
 var Board = require('../models/board');
 var Event = require('../models/event');
 var Comment = require('../models/comment');
+var Notification = require('../models/notification');
+
 
 module.exports = function(passport) {
 	router.put('/events/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
@@ -20,7 +22,27 @@ module.exports = function(passport) {
 					user.attendedEvents = attendedEvents;
 					user.save(function(err, updatedUser) {
 						if (err) throw err;
-						res.json({success: true})
+						var newNotficiation = new Notification({
+							type: 'Attend Event',
+							message: req.user.firstName + " " + req.user.lastName + " is attending your event: " + updatedEvent.name,
+							routeID: {
+								kind: 'Event',
+						   	    item: updatedEvent._id
+                            }
+						})
+						newNotficiation.save(function(err, notification) {
+							User.findById(updatedEvent.postedBy, function(err, user) {
+								if (err)
+									throw err;
+								var notifications = user.notifications
+								notifications.push(notification._id)
+								user.save(function(err, updatedUser) {
+									if (err)
+										throw err;
+									res.json({success: true})
+								})
+							})
+						})
 					})
 				})
 			})

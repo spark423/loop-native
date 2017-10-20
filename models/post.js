@@ -6,7 +6,8 @@ var postSchema = new mongoose.Schema({
   board: {type: mongoose.Schema.Types.ObjectId, ref: 'Board'},
   title: {type: String},
   text: {type: String},
-  comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}]
+  comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
+  followers: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
 });
 
 

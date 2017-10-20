@@ -12,8 +12,11 @@ var userSchema = new mongoose.Schema({
   adminGroups: [{type: mongoose.Schema.Types.ObjectId, ref: 'Group'}],
   joinedGroups: [{type: mongoose.Schema.Types.ObjectId, ref: 'Group'}],
   posts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}],
+  followingPosts: [{type: mongoose.Schema.Types.ObjectId, ref: 'Post'}],
+  subscribedBoards: [{type: mongoose.Schema.Types.ObjectId, ref: 'Board'}],
   attendedEvents: [{type: mongoose.Schema.Types.ObjectId, ref: 'Event'}],
   comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
+  notifications: [{type: mongoose.Schema.Types.ObjectId, ref: 'Notification'}],
   resetPasswordToken: {type: String},
   resetPasswordExpires: {type: Date}  
 });
