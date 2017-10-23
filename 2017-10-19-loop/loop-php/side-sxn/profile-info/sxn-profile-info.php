@@ -1,0 +1,16 @@
+<link rel="stylesheet" href="side-sxn/profile-info/sxn-profile-info.v2.css" />
+
+<div id="profile-info">
+    <p>
+        <b>Lorem Ipsum</b><br/>
+        Lorem ipsum dolor sit amet, conse ctetuer adipiscing elit, sed diam nonummy nibh euismod.
+    </p>
+    <p>
+        <a href=""><span uk-icon="icon: mail"></span>Message User</a><br/>
+        <a href=""><span uk-icon="icon: user"></span>View Profile</a><br/>
+        <a href="#user-warn" uk-toggle><span uk-icon="icon: warning"></span>Block/Warn</a><br/>
+        <a href=""><span uk-icon="icon: plus"></span>Add to Organization/Event</a>
+    </p>
+</div>
+
+<?php include 'elements/element-user-warn-modal.php'; ?>
