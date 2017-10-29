@@ -6,7 +6,7 @@ var notificationSchema = new mongoose.Schema({
 	routeID: {
 		kind: String,
 		item: { type: mongoose.Schema.Types.ObjectId, refPath: 'source.kind' }
-    },
+	}
 });
 
 module.exports = mongoose.model('Notification', notificationSchema);

@@ -10,120 +10,100 @@ var Notification = require('../models/notification')
 module.exports = function(passport) {
   router.delete('/posts/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
 	  Post.findById(req.params.id, function(err, post) {
-		  if (err) throw err;
-		  Board.findById(post.board, function(error, board) {
-			  if (err)throw err;
-			  var boardContents = board.contents;
-			  var contents = [];
-			  for (var i=0; i<board.contents.length; i++) {
-				  contents.push(board.contents[i].item.toString())
-			  }
-			  var index = contents.indexOf(req.params.id.toString())
-			  board.contents = boardContents.slice(0, index).concat(boardContents.slice(index+1, boardContents.length))
-			  board.save(function(error, updatedBoard) {
-			  	if (err) throw err;
-			  	res.json({success: true})
-			  })
-		  })
+		  if (err) {
+        throw err;
+      } else {
+        Board.findOneAndUpdate({_id: post.board}, {$pull: {contents: {item: req.params.id}}}, function(err, board) {
+          if (err) {
+            throw err;
+          } else {
+            res.json({success: true});
+          }
+        })
+      }
 	  })
   })
 
-  router.post('/posts/:id/comment', passport.authenticate('jwt', { session: false }), function(req, res) {
-    async.waterfall([
-      function(done) {
-        var newComment = new Comment({
-          postedBy: req.user._id,
-          source: {"kind": 'Post', "item": req.params.id},
-          text: req.body.text
-        })
-        newComment.save(function(err, newComment) {
-          if (err) 
+  router.put('/posts/:id/follow', passport.authenticate('jwt', { session: false }), function(req, res) {
+    Post.findOneAndUpdate({_id: req.params.id}, {$push: {followers: req.user._id}}, function(err, post) {
+      if (err) {
+        throw err;
+      } else {
+        User.findOneAndUpdate({_id: req.user._id}, {$push: {followingPosts: post._id}}, function(err, user) {
+          if (err) {
             throw err;
-          done(err, newComment)
-        })
-      },
-      function(newComment, done) {
-        Post.findById(req.params.id, function(err, post) {
-          var postComments = post.comments
-          postComments.push(newComment._id);
-          post.comments = postComments
-          post.save(function(err, updatedPost) {
-            if (err) throw err;
-            User.findById(req.user._id, function(err, user) {
-              var userComments = user.comments
-              userComments.push(newComment._id)
-              user.comments = userComments
-              user.save(function(err, updatedUser) {
-                if (err) throw err;
-                done(err, updatedPost)
-              })
-            })
-          })
-        })
-      },
-      function(updatedPost, done) {
-        var posterNotification = new Notification({
-          type: 'Comment on Created Post',
-          message: req.user.firstName + " " + req.user.lastName + " " + "commented on the post " + updatedPost.title + " that you created.",
-          routeID: {
-            kind: 'Post',
-            item: updatedPost._id
+          } else {
+            res.json({success: true});
           }
         })
-        posterNotification.save(function(err, newnotification1) {
-          if (err) throw err;
-          done(err, updatedPost, newnotification1)
-        })
-      },
-      function(updatedPost, newnotification1, done) {
-        User.findById(updatedPost.postedBy, function(err, user) {
-          if (err)
-            throw err;
-          var notifications = user.notifications
-          console.log('notifications length 1', notifications.length)
-          notifications.push(newnotification1._id);
-          user.notifications = notifications
-          user.save(function(err, user) {
-            if (err)
-              throw err;
-            done(err, updatedPost)
-          })
-        })
-      },
-      function(updatedPost, done) {
-        var followerNotification = new Notification({
-          type: 'Comment on Followed Post',
-          message: req.user.firstName + " " + req.user.lastName + " " + "commented on the post " + updatedPost.title + " that you are following.",
-          routeID: {
-            kind: 'Post',
-            item: updatedPost._id
-          }
-        })
-        followerNotification.save(function(err, newnotification2) {
-          if (err) throw err;
-          done(err, updatedPost, newnotification2)
-        })        
       }
-    ],function(err, updatedPost, newNotification2) {
-        var promises = updatedPost.followers.map(function(followerID) {
-          return new Promise(function(resolve, reject) {       
-            User.findById(followerID, function(err, follower){
-              var notifications = follower.notifications
-              notifications.push(newNotification2._id)
-              follower.save(function(err, updatedFollower) {
-                if (err) {
-                  return reject(err);
-                }
-                resolve();
-              })
-            });
-          });
-        });
-        Promise.all(promises).then(function() {
-          res.json({success: true})
-        }).catch(console.error);        
-      })
-    });    
+    })
+  })
 
+  router.post('/posts/:id/comment', passport.authenticate('jwt', { session: false }), function(req, res) {
+    const newComment = new Comment({
+      postedBy: req.user._id,
+      source: {"kind": 'Post', "item": req.params.id},
+      text: req.body.text
+    })
+    newComment.save(function(err, comment) {
+      Post.findOneAndUpdate({_id: req.params.id}, {$push: {comments: comment._id}}, function(err, post) {
+        if (err) {
+          throw err;
+        } else {
+          User.findOneAndUpdate({_id: req.user._id}, {$push: {comments: comment._id}}, function(err, currentUser) {
+            if (err) {
+              throw err;
+            } else {
+              const notificationToPoster = new Notification({
+                type: 'Comment on Created Post',
+                message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
+                routeID: {
+                  kind: 'Post',
+                  item: post._id
+                }
+              })
+              notificationToPoster.save(function(err, notificationToPoster) {
+                User.findOneAndUpdate({_id: post.postedBy}, {$push: {notifications: notificationToPoster._id}}, function(err) {
+                  if (err) {
+                    throw err;
+                  } else {
+                    const notificationToFollowers = new Notification({
+                      type: 'Comment on Following Post',
+                      message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
+                      routeID: {
+                        kind: 'Post',
+                        item: post._id
+                      }
+                    })
+                    notificationToFollowers.save(function(err, notificationToFollowers) {
+                      if (err) {
+                        throw err;
+                      } else {
+                        let promises = post.followers.map(function(followerID) {
+                          return new Promise(function(resolve, reject) {   
+                            User.findOneAndUpdate({_id: followerID}, {$push: {notifications: notificationToFollowers._id}}, function(err) {
+                              if (err) {
+                                throw reject(err);
+                              } else {
+                                resolve();
+                              }
+                            })    
+                          });
+                        });
+                        Promise.all(promises).then(function() {
+                          res.json({success: true})
+                        }).catch(console.error);                      
+                      }
+                    })
+                  }
+                })
+              })
+            }
+          })
+        } 
+      })   
+    })   
+  })
   return router;
 }

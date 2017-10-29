@@ -18,5 +18,24 @@ module.exports = function(passport) {
 		  })
 		})
 	})
+
+	router.get('/user', function(err, user) {
+		User.findById(req.user._id, passport.authenticate('jwt', { session: false }), function(err, user) {
+			if (err)  {
+				throw err;
+			} else {
+			  res.json({
+				  "user": {
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            major: user.major,
+            classYear: user.classYear
+          }				
+		    })
+			}
+		})		
+	})
+
 	return router;
 }
