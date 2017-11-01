@@ -25,14 +25,12 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       }
-      let contents = [];
-      for (let i=board.contents.length - 1; i>-1; i--) {
-        let item = board.contents[i].item;
-              kind = board.contents[i].kind;
+      let contents = board.contents.reverse().map(async function(content) {
+        let item = content.item;
+        let kind = content.kind;
         let comments = [];
         for (let j=0; j<item.comments.length; j++) {
           let comment = item.comments[j];
-          console.log("comment", comment)
           let commentOfComments = comment.comments.map(function(commentOfComment) {
             return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}, "text": commentOfComment.text}
           })
@@ -49,53 +47,79 @@ module.exports = function(passport) {
           });
         }        
         if (kind == 'Post') {
-          contents.push({
-            "own": req.user._id.toString() === item.postedBy._id.toString(),
+          let postCreator = await User.findById(item.postedBy);
+          let postObject = {
+            "own": req.user._id.toString() === postCreator._id.toString(),
+            "following": req.user.followingPosts.indexOf(item._id) > -1,
             "id": item._id,
             "createdAt": item.createdAt,
             "postedBy": {
-              "id": item.postedBy._id,
-              "firstName": item.postedBy.firstName,
-              "lastName": item.postedBy.lastName
+              "id": postCreator._id,
+              "firstName": postCreator.firstName,
+              "lastName": postCreator.lastName
             },
             "title": item.title,
             "text": item.text,
             "comments": comments
-          });
+          }               
+          return Promise.resolve(postObject)
         } else {
           let attendees = item.attendees.map(function(attendee) {
             return {"id": attendee._id, "firstName": attendee.firstName, "lastName": attendee.lastName}
           })
-          contents.push({
-            "own": req.user.username === item.postedBy,
-            "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
-            "id": item._id,
-            "createdAt": item.createdAt,
-            "postedBy": {
-              "id": item.postedBy._id,
-              "firstName": item.postedBy.firstName,
-              "lastName": item.postedBy.lastName
-            },
-            "title": item.title,
-            "date": item.date,
-            "startTime": item.startTime,
-            "endTime": item.endTime,
-            "location": item.location,
-            "description": item.description,              
-            "comments": comments,
-            "attendees": attendees
-          });
+          let eventCreator = await User.findOne({username: item.contact});
+          if (eventCreator) {
+            let eventObject = {
+              "own": req.user.username === item.postedBy,
+              "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
+              "id": item._id,
+              "createdAt": item.createdAt,
+              "postedBy": {
+                "id": eventCreator._id,
+                "firstName": eventCreator.firstName,
+                "lastName": eventCreator.lastName
+              },
+              "title": item.title,
+              "date": item.date,
+              "startTime": item.startTime,
+              "endTime": item.endTime,
+              "location": item.location,
+              "description": item.description,              
+              "comments": comments,
+              "attendees": attendees
+            }
+            return Promise.resolve(eventObject);              
+          } else {
+            let eventObject = {
+              "own": req.user.username === item.postedBy,
+              "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
+              "id": item._id,
+              "createdAt": item.createdAt,
+              "postedBy": item.contact,
+              "title": item.title,
+              "date": item.date,
+              "startTime": item.startTime,
+              "endTime": item.endTime,
+              "location": item.location,
+              "description": item.description,              
+              "comments": comments,
+              "attendees": attendees
+            };
+            return Promise.resolve(eventObject);
+          }
         }
-      }
-      res.json({
-      	board: {
-      		id: board._id,
-          postable: board.postable,
-          private: board.private,
-      		name: board.name,
-      		description: board.description,
-      		contents: contents
-      	}
+      });
+      Promise.all(contents).then(function(contents) {       
+        res.json({
+          board: {
+            id: board._id,
+            postable: board.postable,
+            private: board.private,
+            name: board.name,
+            description: board.description,
+            contents: contents
+          }
+        })
       })
     })
   });
