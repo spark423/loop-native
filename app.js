@@ -8,6 +8,7 @@ var passport = require('passport');
 var path = require('path')
 var port = 3000;
 var routes = require('./routes/routes');
+var feed = require('./routes/feed');
 var drawer = require('./routes/drawer');
 var board = require('./routes/board');
 var post = require('./routes/post');
@@ -15,6 +16,8 @@ var event = require('./routes/event');
 var comment = require('./routes/comment');
 var user = require('./routes/user');
 var group = require('./routes/group');
+var notification = require('./routes/notification');
+
 
 //Express configuration ==============================================================================================================================================================
 app.use(express.static(path.join(__dirname, 'public')));
@@ -36,6 +39,7 @@ mongoose.connect(MONGODB_URI)
 //Routes =============================================================================================================================================================================
 require('./config/passport')(passport);  
 app.use(routes(passport));
+app.use(feed(passport));
 app.use(drawer(passport));
 app.use(board(passport));
 app.use(post(passport));
@@ -43,8 +47,7 @@ app.use(event(passport));
 app.use(comment(passport));
 app.use(user(passport));
 app.use(group(passport));
-
-
+app.use(notification(passport));
 
 //Error handling =====================================================================================================================================================================
 app.use(function(req, res, next) {
