@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 
 var eventSchema = new mongoose.Schema({  
   createdAt: {type: Date, default: Date.now()},
+  updatedTime: {type: Date, default: Date.now()},
   contact: {type: String},
   board: {type: mongoose.Schema.Types.ObjectId, ref: 'Board'},
   title: {type: String},

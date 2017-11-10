@@ -10,26 +10,38 @@ module.exports = function(passport) {
 			if (err) {
 				throw err;
 			} else {
-				var members = group.members.map(function(member) {
-					return {id: member._id, username: member.username, firstName: member.firstName, lastName: member.lastName}
+				let members = group.members.map(function(member) {
+					return {id: member._id, username: member.username, firstName: member.firstName, lastName: member.lastName};
 				})
-				var adminUsername = group.admin
+				let adminUsername = group.admin;
 				User.find({username: adminUsername}, function(err, user) {
 					if (err) {
 						throw err;
-					} else {
-						var admin = {id: user._id, username: user.username, firstName: user.firstName, lastName: user.lastName}
+					} else if (user) {
+						let admin = {"id": user._id, "firstName": user.firstName, "lastName": user.lastName, "username": user.username, "isLoopUser": true};
 						res.json({
 							admin: req.user.username === admin.username,
-							member: req.user.joinedGroups.indexOf(group._id) > -1, 
-							group: {
-								"id": group._id,
-								"name": group.name,
-								"description": group.description,
-								"admin": user,
-								"members": members
+						  member: req.user.joinedGroups.indexOf(group._id) > -1, 
+						  group: {
+							  "id": group._id,
+							  "name": group.name,
+							  "description": group.description,
+							  "admin": admin,
+							  "members": members
               }
-			  	  })
+			      })							
+					}	 else {
+						res.json({
+							admin: req.user.username === admin.username,
+						  member: req.user.joinedGroups.indexOf(group._id) > -1, 
+						  group: {
+							  "id": group._id,
+							  "name": group.name,
+							  "description": group.description,
+							  "admin": {"id": "", "firstName": "", "lastName": "", "username": adminUsername, "isLoopUser": false},
+							  "members": members
+              }
+			      })		
 					}
 				})
 			}

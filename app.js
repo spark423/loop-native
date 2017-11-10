@@ -6,7 +6,7 @@ var mongoose = require('mongoose');
 var morgan = require('morgan');
 var passport = require('passport');
 var path = require('path')
-var port = 3000;
+var port =  process.env.PORT || 3000;
 var routes = require('./routes/routes');
 var feed = require('./routes/feed');
 var drawer = require('./routes/drawer');
@@ -17,6 +17,10 @@ var comment = require('./routes/comment');
 var user = require('./routes/user');
 var group = require('./routes/group');
 var notification = require('./routes/notification');
+var User = require('./models/user');
+
+
+
 
 
 //Express configuration ==============================================================================================================================================================
@@ -81,7 +85,6 @@ app.use(function(err, req, res, next) {
 
 //====================================================================================================================================================================================
 app.listen(port, function(){
-  console.log("mongodb", MONGODB_URI)
   console.log('Express started. Listening on %s', port);
 });
 

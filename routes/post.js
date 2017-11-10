@@ -6,6 +6,7 @@ var Board = require('../models/board');
 var Post = require('../models/post');
 var Comment = require('../models/comment');
 var Notification = require('../models/notification')
+var Time = require('../models/time')
 
 module.exports = function(passport) {
   router.delete('/posts/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
@@ -25,23 +26,51 @@ module.exports = function(passport) {
   })
 
   router.put('/posts/:id/follow', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Post.findOneAndUpdate({_id: req.params.id}, {$push: {followers: req.user._id}}, function(err, post) {
+    Time.findOneAndUpdate({}, {$push: {follows: {createdAt: Date.now(), post: req.params.id, user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
       } else {
-        User.findOneAndUpdate({_id: req.user._id}, {$push: {followingPosts: post._id}}, function(err, user) {
+        Post.findOneAndUpdate({_id: req.params.id}, {$push: {followers: req.user._id}}, function(err, post) {
           if (err) {
             throw err;
           } else {
-            res.json({success: true});
+            User.findOneAndUpdate({_id: req.user._id}, {$push: {followingPosts: post._id}}, function(err, user) {
+              if (err) {
+                throw err;
+              } else {
+                res.json({success: true});
+              }
+            })
           }
         })
       }
     })
   })
 
+  router.put('/posts/:id/unfollow', passport.authenticate('jwt', { session: false }), function(req, res) {
+    Time.findOneAndUpdate({}, {$pull: {follows: {post: req.params.id, user:req.user._id}}}, function(err, time) {
+      if (err) {
+        throw err;
+      } else {
+        Post.findOneAndUpdate({_id: req.params.id}, {$pull: {followers: req.user._id}}, function(err, post) {
+          if (err) {
+            throw err;
+          } else {
+            User.findOneAndUpdate({_id: req.user._id}, {$pull: {followingPosts: post._id}}, function(err, user) {
+              if (err) {
+                throw err;
+              } else {
+                res.json({success: true});
+              }
+            })
+          }
+        })        
+      }
+    })    
+  })  
+
   router.post('/posts/:id/comment', passport.authenticate('jwt', { session: false }), function(req, res) {
-    const newComment = new Comment({
+    let newComment = new Comment({
       postedBy: req.user._id,
       source: {"kind": 'Post', "item": req.params.id},
       text: req.body.text
@@ -55,7 +84,7 @@ module.exports = function(passport) {
             if (err) {
               throw err;
             } else {
-              const notificationToPoster = new Notification({
+              let notificationToPoster = new Notification({
                 type: 'Comment on Created Post',
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
                 routeID: {
@@ -68,7 +97,7 @@ module.exports = function(passport) {
                   if (err) {
                     throw err;
                   } else {
-                    const notificationToFollowers = new Notification({
+                    let notificationToFollowers = new Notification({
                       type: 'Comment on Following Post',
                       message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                       routeID: {

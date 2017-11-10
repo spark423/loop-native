@@ -10,7 +10,7 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else {
-      	const notifications = user.notifications.map(function(notification) {
+      	let notifications = user.notifications.map(function(notification) {
       		return {"type": notification.type, "createdAt": notification.createdAt, "message": notification.message, "routeID": notification.routeID}
       	})
       	res.json({notifications: notifications});

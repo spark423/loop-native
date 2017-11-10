@@ -22,7 +22,7 @@ module.exports = function(passport) {
 							if (err) {
 								throw err;
 							} else if (eventCreator) {
-								const notificationToCreator = new Notification({
+								let notificationToCreator = new Notification({
 									type: 'Attend Event',
 									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
 							    routeID: {
@@ -70,7 +70,7 @@ module.exports = function(passport) {
   })
 
   router.post('/events/:id/comment', passport.authenticate('jwt', { session: false }), function(req, res) {
-  	const newComment = new Comment({
+  	let newComment = new Comment({
   		postedBy: req.user._id,
   		source: {"kind": 'Event', "item": req.params.id},
   		text: req.body.text
