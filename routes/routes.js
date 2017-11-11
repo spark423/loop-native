@@ -8,7 +8,8 @@ var sgTransport = require('nodemailer-sendgrid-transport');
 var secret = process.env.secret;
 var username = process.env.api_user;
 var password = process.env.api_key;
-var User = require('../models/user')
+var User = require('../models/user');
+var Group = require('../models/group');
 
 module.exports = function(passport) {
 	router.get('/signup', function(req ,res) {
@@ -30,12 +31,24 @@ module.exports = function(passport) {
 				major: req.body.major,
 				classYear: req.body.classYear
 			});
-      newUser.save(function(err) {
+      newUser.save(function(err, newUser) {
         if (err) {
           res.json({ success: false, message: 'That email address already exists.'});
         }
-        res.json({ success: true, message: 'Successfully created new user.'});
-      });
+        Group.findOneAndUpdate({admin: newUser.username}, {$push: {members: newUser._id}}, function(err, group) {
+        	if (err) {
+        		throw err;
+        	} else {
+            User.findOneAndUpdate({_id: newUser._id}, {$push: {adminGroups: newUser._id, joinedGroups: newUser._id}}, function(err, updatedUser) {
+            	if (err) {
+            		throw err;
+            	} else {
+                res.json({ success: true, message: 'Successfully created new user.'});           		
+            	}
+            })
+        	}
+        })
+      })
     }
 	})
 
@@ -87,7 +100,7 @@ module.exports = function(passport) {
           }
 
           user.resetPasswordToken = token;
-          user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+          user.resetPasswordExpires = Date.now() + 36000000; // 1 hour
  
           user.save(function(err) {
             done(err, token, user);

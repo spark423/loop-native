@@ -103,7 +103,7 @@ module.exports = function(passport) {
                     "id": postCreator._id,
                     "firstName": postCreator.firstName,
                     "lastName": postCreator.lastName,
-                    "postCreator": postCreator.username,
+                    "username": postCreator.username,
                     "isLoopUser": true
                   },                  
                   "title": item.title,
@@ -166,7 +166,7 @@ module.exports = function(passport) {
               }             
             })
             Promise.all(feed).then(function(feed) { 
-              res.json({feed: feed}) 
+              res.json({contents: feed}) 
             });
           }
         })  

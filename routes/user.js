@@ -19,8 +19,8 @@ module.exports = function(passport) {
 		})
 	})
 
-	router.get('/user', function(err, user) {
-		User.findById(req.user._id, passport.authenticate('jwt', { session: false }), function(err, user) {
+	router.get('/user', passport.authenticate('jwt', { session: false }), function(req, res) {
+		User.findById(req.user._id, function(err, user) {
 			if (err)  {
 				throw err;
 			} else {

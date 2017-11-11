@@ -21,8 +21,6 @@ var User = require('./models/user');
 
 
 
-
-
 //Express configuration ==============================================================================================================================================================
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize()); 
@@ -30,11 +28,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev')); 
 
-
-//View Engine Configuration ==========================================================================================================================================================
-app.set('views', path.join(__dirname, 'views'));
-app.engine('html', require('ejs').renderFile);
-app.set('view engine', 'html');
 
 //Database configuration =============================================================================================================================================================
 var MONGODB_URI = process.env.MONGODB_URI
@@ -52,6 +45,9 @@ app.use(comment(passport));
 app.use(user(passport));
 app.use(group(passport));
 app.use(notification(passport));
+
+
+
 
 //Error handling =====================================================================================================================================================================
 app.use(function(req, res, next) {

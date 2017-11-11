@@ -26,7 +26,7 @@ module.exports = function(passport) {
   })
 
   router.put('/posts/:id/follow', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Time.findOneAndUpdate({}, {$push: {follows: {createdAt: Date.now(), post: req.params.id, user:req.user._id}}}, function(err, time) {
+    Time.findOneAndUpdate({_id: "5a073c57134ccaaa80e6c7f5"}, {$push: {follows: {createdAt: Date.now(), post: req.params.id, user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
       } else {
@@ -48,7 +48,7 @@ module.exports = function(passport) {
   })
 
   router.put('/posts/:id/unfollow', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Time.findOneAndUpdate({}, {$pull: {follows: {post: req.params.id, user:req.user._id}}}, function(err, time) {
+    Time.findOneAndUpdate({_id: "5a073c57134ccaaa80e6c7f5"}, {$pull: {follows: {post: req.params.id, user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
       } else {

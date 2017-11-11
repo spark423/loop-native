@@ -32,7 +32,7 @@ module.exports = function(passport) {
 			      })							
 					}	 else {
 						res.json({
-							admin: req.user.username === admin.username,
+							admin: req.user.username === adminUsername,
 						  member: req.user.joinedGroups.indexOf(group._id) > -1, 
 						  group: {
 							  "id": group._id,

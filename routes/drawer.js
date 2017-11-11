@@ -5,10 +5,11 @@ var jwt = require('jsonwebtoken');
 var User = require('../models/user');
 var Board = require('../models/board');
 var Group = require('../models/group');
+var Time = require('../models/time');
 
 module.exports = function(passport) {
   router.put('/subscription', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Time.findOneAndUpdate({}, {$push: {follows: {createdAt: Date.now(), board: req.params.id, user:req.user._id}}}, function(err, time) {
+    Time.findOneAndUpdate({_id: "5a073c57134ccaaa80e6c7f5"}, {$push: {follows: {createdAt: Date.now(), user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
       } else {

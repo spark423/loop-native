@@ -7,7 +7,7 @@ var userSchema = new mongoose.Schema({
   password: {type: String, required: true},
   firstName: {type: String},
   lastName: {type: String},
-  major: [{type: String}],
+  major: {type: String},
   classYear: {type: Number},
   description: {type: String},
   adminGroups: [{type: mongoose.Schema.Types.ObjectId, ref: 'Group'}],

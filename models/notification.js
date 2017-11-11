@@ -2,10 +2,11 @@ var mongoose = require('mongoose');
 
 var notificationSchema = new mongoose.Schema({
 	type: {type: String},
+	created: {type: Date, default: Date.now()},
 	message: {type: String},
 	routeID: {
 		kind: String,
-		item: { type: mongoose.Schema.Types.ObjectId, refPath: 'source.kind' }
+		id: { type: mongoose.Schema.Types.ObjectId, refPath: 'source.kind' }
 	}
 });
 
