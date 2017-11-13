@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var mongoose = require('mongoose');
 var jwt = require('jsonwebtoken');
 var User = require('../models/user');
 var Board = require('../models/board');
@@ -9,18 +8,15 @@ var Time = require('../models/time');
 
 module.exports = function(passport) {
   router.put('/subscription', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Time.findOneAndUpdate({_id: "5a073c57134ccaaa80e6c7f5"}, {$push: {follows: {createdAt: Date.now(), user:req.user._id}}}, function(err, time) {
+    Time.findOneAndUpdate({}, {$push: {follows: {createdAt: Date.now(), user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
       } else {
-        let subscribedBoards = req.body.subscribedBoards.map(function(boardId) {
-          return mongoose.Types.ObjectId(boardId);
-        })
-        User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: subscribedBoards}},function(err,user) {
+        User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: req.body.subscribedBoards}},function(err,user) {
           if (err) {
             throw err;
           } else {
-            res.json({"success": true})
+            res.json({success: true})
           }
         })        
       }

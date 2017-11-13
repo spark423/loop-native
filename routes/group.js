@@ -14,7 +14,7 @@ module.exports = function(passport) {
 					return {id: member._id, username: member.username, firstName: member.firstName, lastName: member.lastName};
 				})
 				let adminUsername = group.admin;
-				User.find({username: adminUsername}, function(err, user) {
+				User.findOne({username: adminUsername}, function(err, user) {
 					if (err) {
 						throw err;
 					} else if (user) {

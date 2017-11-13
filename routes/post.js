@@ -26,7 +26,7 @@ module.exports = function(passport) {
   })
 
   router.put('/posts/:id/follow', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Time.findOneAndUpdate({_id: "5a073c57134ccaaa80e6c7f5"}, {$push: {follows: {createdAt: Date.now(), post: req.params.id, user:req.user._id}}}, function(err, time) {
+    Time.findOneAndUpdate({}, {$push: {follows: {createdAt: Date.now(), post: req.params.id, user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
       } else {
@@ -89,7 +89,7 @@ module.exports = function(passport) {
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
                 routeID: {
                   kind: 'Post',
-                  item: post._id
+                  id: post._id
                 }
               })
               notificationToPoster.save(function(err, notificationToPoster) {
@@ -102,7 +102,7 @@ module.exports = function(passport) {
                       message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                       routeID: {
                         kind: 'Post',
-                        item: post._id
+                        id: post._id
                       }
                     })
                     notificationToFollowers.save(function(err, notificationToFollowers) {
@@ -121,7 +121,16 @@ module.exports = function(passport) {
                           });
                         });
                         Promise.all(promises).then(function() {
-                          res.json({success: true})
+                          res.json({comment: {
+                          	"id": comment._id,
+                          	"postedBy": {
+                          		"id": req.user._id,
+                          		"firstName": req.user.firstName,
+                          		"lastName": req.user.lastName,
+                          		"username": req.user.username,
+                          		"isLoopUser": true
+                          	},
+                          }})
                         }).catch(console.error);                      
                       }
                     })

@@ -13,7 +13,7 @@ module.exports = function(passport) {
         throw err;
       } else {
         let boardsArr = boards.map(function(board) {
-          return {"id": board._id, "name": board.name, "unsubscribable": board.unsubscribable, "subscribed": req.user.subscribedBoards(board._id) > -1};
+          return {"id": board._id, "name": board.name};
         })
         res.json({"boards": boardsArr});
       }
@@ -21,7 +21,7 @@ module.exports = function(passport) {
   })
 
   router.get('/boards/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Board.findById(req.params.id).populate([{path: 'contents.item', populate: [{path: 'postedBy'}, {path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, board) {
+    Board.findById(req.params.id).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, board) {
       if (err) {
         throw err;
       } else if (board.private) {

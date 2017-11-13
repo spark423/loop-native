@@ -17,7 +17,6 @@ var comment = require('./routes/comment');
 var user = require('./routes/user');
 var group = require('./routes/group');
 var notification = require('./routes/notification');
-var User = require('./models/user');
 
 
 
@@ -45,8 +44,6 @@ app.use(comment(passport));
 app.use(user(passport));
 app.use(group(passport));
 app.use(notification(passport));
-
-
 
 
 //Error handling =====================================================================================================================================================================

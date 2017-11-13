@@ -3,6 +3,7 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 var Board = require('../models/board');
 var User = require('../models/user');
+var mongoose = require('mongoose');
 
 function swap(items, firstIndex, secondIndex){
   var temp = items[firstIndex];
@@ -58,15 +59,14 @@ function quickSort(items, left, right) {
 
 module.exports = function(passport) {
   router.get('/feed', passport.authenticate('jwt', { session: false }), function(req, res) {
-    User.findById(req.user._id, function(err, user) {
+    User.findById(req.user._id).exec(function(err, user) {
       if (err) {
         throw err;
       } else {
-        Board.find({$or: [{unsubscribable: true},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
+        Board.find({$or: [{name: "Campus Updates"},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
           } else {
-            console.log("boards", boards)
             let contents = [];
             for (let i=0; i<boards.length; i++) {
               contents = contents.concat(boards[i].contents)
@@ -89,6 +89,7 @@ module.exports = function(passport) {
                       "firstName": comment.postedBy.firstName,
                       "lastName": comment.postedBy.lastName
                     },
+                    "text": comment.text,
                     "comments": commentOfComments
                   });
                 }        
