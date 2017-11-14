@@ -87,7 +87,16 @@ module.exports = function(passport) {
           if (err) {
             throw err;
           }
-          res.json({success: true})
+          res.json({comment: {
+            "id": newComment._id,
+            "postedBy": {
+              "id": req.user._id,
+              "firstName": req.user.firstName,
+              "lastName": req.user.lastName,
+              "username": req.user.username,
+              "isLoopUser": true
+            },
+          }})
         })
       });      
   	})
