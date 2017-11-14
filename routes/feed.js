@@ -119,7 +119,7 @@ module.exports = function(passport) {
                 let eventCreator = await User.findOne({username: item.contact});
                 if (eventCreator) {
                 	let eventObject = {
-                    "own": req.user.username === item.postedBy,
+                    "own": req.user.username === item.contact,
                     "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                     "id": item._id,
                     "createdAt": item.createdAt,
@@ -142,7 +142,7 @@ module.exports = function(passport) {
                   return Promise.resolve(eventObject);            	
                 } else {
                 	let eventObject = {
-                    "own": req.user.username === item.postedBy,
+                    "own": req.user.username === item.contact,
                     "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                     "id": item._id,
                     "createdAt": item.createdAt,

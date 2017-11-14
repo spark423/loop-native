@@ -136,6 +136,7 @@ module.exports = function(passport) {
       } else {
         let contents = board.contents.reverse().map(async function(content) {
           let item = content.item;
+          console.log(item.Title);
           let kind = content.kind;
           let comments = [];
           for (let j=0; j<item.comments.length; j++) {
@@ -181,7 +182,7 @@ module.exports = function(passport) {
             let eventCreator = await User.findOne({username: item.contact});
             if (eventCreator) {
               let eventObject = {
-                "own": req.user.username === item.postedBy,
+                "own": req.user.username === item.contact,
                 "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                 "id": item._id,
                 "createdAt": item.createdAt,
@@ -194,9 +195,9 @@ module.exports = function(passport) {
                 },
                 "title": item.title,
                 "date": item.date,
-                "startTime": item.startTime,
-                "endTime": item.endTime,
-                "location": item.location,
+                "startTime": item.startTime || "",
+                "endTime": item.endTime || "",
+                "location": item.location || "",
                 "description": item.description,              
                 "comments": comments,
                 "attendees": attendees
@@ -204,7 +205,7 @@ module.exports = function(passport) {
               return Promise.resolve(eventObject);              
             } else {
               let eventObject = {
-                "own": req.user.username === item.postedBy,
+                "own": req.user.username === item.contact,
                 "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                 "id": item._id,
                 "createdAt": item.createdAt,
@@ -217,9 +218,9 @@ module.exports = function(passport) {
                 },
                 "title": item.title,
                 "date": item.date,
-                "startTime": item.startTime,
-                "endTime": item.endTime,
-                "location": item.location,
+                "startTime": item.startTime || "",
+                "endTime": item.endTime || "",
+                "location": item.location || "",
                 "description": item.description,              
                 "comments": comments,
                 "attendees": attendees
