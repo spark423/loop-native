@@ -136,7 +136,6 @@ module.exports = function(passport) {
       } else {
         let contents = board.contents.reverse().map(async function(content) {
           let item = content.item;
-          console.log(item.Title);
           let kind = content.kind;
           let comments = [];
           for (let j=0; j<item.comments.length; j++) {
