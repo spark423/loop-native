@@ -3,7 +3,8 @@ var mongoose = require('mongoose');
 var boardSchema = new mongoose.Schema({  
   name: {type: String, required: true},
   description: {type: String},
-  postable: {type: Boolean},
+  create: {type: Boolean},
+  unsubscribable: {type: Boolean},
   private: {type: Boolean},
   asset: {type: String},
   contents: [{

@@ -8,7 +8,8 @@ var sgTransport = require('nodemailer-sendgrid-transport');
 var secret = process.env.secret;
 var username = process.env.api_user;
 var password = process.env.api_key;
-var User = require('../models/user')
+var User = require('../models/user');
+var Group = require('../models/group');
 
 module.exports = function(passport) {
 	router.get('/signup', function(req ,res) {
@@ -22,7 +23,7 @@ module.exports = function(passport) {
 		} else if (req.body.password !== req.body.confirmPassword) {
 			res.json({ success: false, message: "The two password fields don't match."})
 	  } else {
-			var newUser = new User({
+			let newUser = new User({
 				username: req.body.username,
 				password: req.body.password,
 				firstName: req.body.firstName,
@@ -30,13 +31,24 @@ module.exports = function(passport) {
 				major: req.body.major,
 				classYear: req.body.classYear
 			});
-			// Attempt to save the user
-      newUser.save(function(err) {
+      newUser.save(function(err, newUser) {
         if (err) {
           res.json({ success: false, message: 'That email address already exists.'});
         }
-        res.json({ success: true, message: 'Successfully created new user.'});
-      });
+        Group.findOneAndUpdate({admin: newUser.username}, {$push: {members: newUser._id}}, function(err, group) {
+        	if (err) {
+        		throw err;
+        	} else {
+            User.findOneAndUpdate({_id: newUser._id}, {$push: {adminGroups: newUser._id, joinedGroups: newUser._id}}, function(err, updatedUser) {
+            	if (err) {
+            		throw err;
+            	} else {
+                res.json({ success: true, message: 'Successfully created new user.'});           		
+            	}
+            })
+        	}
+        })
+      })
     }
 	})
 
@@ -57,9 +69,7 @@ module.exports = function(passport) {
         user.comparePassword(req.body.password, function(err, isMatch) {
           if (isMatch && !err) {
             // Create token if the password matched and no error was thrown
-            var token = jwt.sign({data: user}, secret, {
-              expiresIn: 10080 // in seconds
-            });
+            let token = jwt.sign({data: user}, secret);
             res.json({ success: true, token: 'JWT ' + token });
           } else {
             res.send(401, { success: false, message: 'Authentication failed. Incorrect password.'});
@@ -90,7 +100,7 @@ module.exports = function(passport) {
           }
 
           user.resetPasswordToken = token;
-          user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+          user.resetPasswordExpires = Date.now() + 36000000; // 1 hour
  
           user.save(function(err) {
             done(err, token, user);
@@ -98,17 +108,17 @@ module.exports = function(passport) {
         });
       },
       function(token, user, done) {
-        var options = {
+        let options = {
     	    auth: {
     		    api_user: username,
             api_key: password
           }
         }
 
-        var client = nodemailer.createTransport(sgTransport(options));
+        let client = nodemailer.createTransport(sgTransport(options));
   	
-        var email = {
-          from: 'passwordreset@demo.com',      	
+        let email = {
+          from: 'support@theuniversityloop.com',      	
           to: user.username,
           subject: ' Password Reset',
           text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
@@ -144,17 +154,17 @@ module.exports = function(passport) {
         });
       },
       function(user, done) {
-        var options = {
+        let options = {
           auth: {
     		    api_user: username,
             api_key: password
           }
         }
 
-        var client = nodemailer.createTransport(sgTransport(options));
+        let client = nodemailer.createTransport(sgTransport(options));
   	
-        var email = {
-          from: 'passwordreset@demo.com',      	
+        let email = {
+          from: 'support@theuniversityloop.com',      	
           to: user.username,
           subject: 'Successful Password Reset',
           text: 'Hello,\n\n' +

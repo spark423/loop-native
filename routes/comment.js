@@ -38,7 +38,7 @@ module.exports = function(passport) {
   })
 
   router.post('/comments/:id/comment', passport.authenticate('jwt', { session: false }), function(req, res) {
-  	var newComment = new Comment({
+  	let newComment = new Comment({
   		postedBy: req.user._id,
   		source: {"kind": 'Comment', "item": req.params.id},
   		text: req.body.text

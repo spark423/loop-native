@@ -6,7 +6,7 @@ var mongoose = require('mongoose');
 var morgan = require('morgan');
 var passport = require('passport');
 var path = require('path')
-var port = 3000;
+var port =  process.env.PORT || 3000;
 var routes = require('./routes/routes');
 var feed = require('./routes/feed');
 var drawer = require('./routes/drawer');
@@ -19,6 +19,7 @@ var group = require('./routes/group');
 var notification = require('./routes/notification');
 
 
+
 //Express configuration ==============================================================================================================================================================
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize()); 
@@ -26,11 +27,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan('dev')); 
 
-
-//View Engine Configuration ==========================================================================================================================================================
-app.set('views', path.join(__dirname, 'views'));
-app.engine('html', require('ejs').renderFile);
-app.set('view engine', 'html');
 
 //Database configuration =============================================================================================================================================================
 var MONGODB_URI = process.env.MONGODB_URI
@@ -48,6 +44,7 @@ app.use(comment(passport));
 app.use(user(passport));
 app.use(group(passport));
 app.use(notification(passport));
+
 
 //Error handling =====================================================================================================================================================================
 app.use(function(req, res, next) {
@@ -81,7 +78,6 @@ app.use(function(err, req, res, next) {
 
 //====================================================================================================================================================================================
 app.listen(port, function(){
-  console.log("mongodb", MONGODB_URI)
   console.log('Express started. Listening on %s', port);
 });
 

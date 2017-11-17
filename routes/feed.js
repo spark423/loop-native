@@ -3,6 +3,7 @@ var router = express.Router();
 var jwt = require('jsonwebtoken');
 var Board = require('../models/board');
 var User = require('../models/user');
+var mongoose = require('mongoose');
 
 function swap(items, firstIndex, secondIndex){
   var temp = items[firstIndex];
@@ -58,11 +59,11 @@ function quickSort(items, left, right) {
 
 module.exports = function(passport) {
   router.get('/feed', passport.authenticate('jwt', { session: false }), function(req, res) {
-    User.findById(req.user._id, function(err, user) {
+    User.findById(req.user._id).exec(function(err, user) {
       if (err) {
         throw err;
       } else {
-        Board.find({_id: {$in: user.subscribedBoards}}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
+        Board.find({$or: [{name: "Campus Updates"},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
           } else {
@@ -88,6 +89,7 @@ module.exports = function(passport) {
                       "firstName": comment.postedBy.firstName,
                       "lastName": comment.postedBy.lastName
                     },
+                    "text": comment.text,
                     "comments": commentOfComments
                   });
                 }        
@@ -101,8 +103,10 @@ module.exports = function(passport) {
                   "postedBy": {
                     "id": postCreator._id,
                     "firstName": postCreator.firstName,
-                    "lastName": postCreator.lastName
-                  },
+                    "lastName": postCreator.lastName,
+                    "username": postCreator.username,
+                    "isLoopUser": true
+                  },                  
                   "title": item.title,
                   "text": item.text,
                   "comments": comments
@@ -115,15 +119,17 @@ module.exports = function(passport) {
                 let eventCreator = await User.findOne({username: item.contact});
                 if (eventCreator) {
                 	let eventObject = {
-                    "own": req.user.username === item.postedBy,
+                    "own": req.user.username === item.contact,
                     "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                     "id": item._id,
                     "createdAt": item.createdAt,
                     "postedBy": {
                       "id": eventCreator._id,
                       "firstName": eventCreator.firstName,
-                      "lastName": eventCreator.lastName
-                    },
+                      "lastName": eventCreator.lastName,
+                      "username": eventCreator.username,
+                    	"isLoopUser": true
+                    },                             
                     "title": item.title,
                     "date": item.date,
                     "startTime": item.startTime,
@@ -136,11 +142,17 @@ module.exports = function(passport) {
                   return Promise.resolve(eventObject);            	
                 } else {
                 	let eventObject = {
-                    "own": req.user.username === item.postedBy,
+                    "own": req.user.username === item.contact,
                     "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                     "id": item._id,
                     "createdAt": item.createdAt,
-                    "postedBy": item.contact,
+                    "postedBy": {
+                    	"id": "",
+                    	"firstName": "",
+                    	"lastName": "",
+                    	"username": item.contact,
+                    	"isLoopUser": false
+                    },                    
                     "title": item.title,
                     "date": item.date,
                     "startTime": item.startTime,
@@ -155,7 +167,7 @@ module.exports = function(passport) {
               }             
             })
             Promise.all(feed).then(function(feed) { 
-              res.json({feed: feed}) 
+              res.json({contents: feed}) 
             });
           }
         })  

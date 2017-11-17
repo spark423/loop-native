@@ -1,12 +1,13 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt-nodejs');
 
-var userSchema = new mongoose.Schema({  
+var userSchema = new mongoose.Schema({
+  createdAt: {type: Date, default: Date.now()},
   username: {type: String, lowercase: true, unique: true, required: true},
   password: {type: String, required: true},
   firstName: {type: String},
   lastName: {type: String},
-  major: [{type: String}],
+  major: {type: String},
   classYear: {type: Number},
   description: {type: String},
   adminGroups: [{type: mongoose.Schema.Types.ObjectId, ref: 'Group'}],

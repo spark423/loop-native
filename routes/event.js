@@ -22,12 +22,12 @@ module.exports = function(passport) {
 							if (err) {
 								throw err;
 							} else if (eventCreator) {
-								const notificationToCreator = new Notification({
+								let notificationToCreator = new Notification({
 									type: 'Attend Event',
 									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
 							    routeID: {
 								    kind: 'Event',
-						   	    item: event._id
+						   	    id: event._id
                   }
 						    })
 						    notificationToCreator.save(function(err, notificationToCreator){
@@ -70,7 +70,7 @@ module.exports = function(passport) {
   })
 
   router.post('/events/:id/comment', passport.authenticate('jwt', { session: false }), function(req, res) {
-  	const newComment = new Comment({
+  	let newComment = new Comment({
   		postedBy: req.user._id,
   		source: {"kind": 'Event', "item": req.params.id},
   		text: req.body.text
@@ -87,7 +87,16 @@ module.exports = function(passport) {
           if (err) {
             throw err;
           }
-          res.json({success: true})
+          res.json({comment: {
+            "id": newComment._id,
+            "postedBy": {
+              "id": req.user._id,
+              "firstName": req.user.firstName,
+              "lastName": req.user.lastName,
+              "username": req.user.username,
+              "isLoopUser": true
+            },
+          }})
         })
       });      
   	})
