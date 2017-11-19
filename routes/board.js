@@ -21,7 +21,7 @@ module.exports = function(passport) {
   })
 
   router.get('/boards/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Board.findById(req.params.id).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, board) {
+    Board.findById(req.params.id).populate({path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}).lean().exec(function(err, board) {
       if (err) {
         throw err;
       } else if (board.private) {
@@ -32,9 +32,6 @@ module.exports = function(passport) {
             let comments = [];
             for (let j=0; j<item.comments.length; j++) {
               let comment = item.comments[j];
-              let commentOfComments = comment.comments.map(function(commentOfComment) {
-                return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}, "text": commentOfComment.text}
-              })
               comments.push({
                 "id": comment._id,
                 "createdAt": comment.createdAt,
@@ -43,8 +40,7 @@ module.exports = function(passport) {
                   "firstName": comment.postedBy.firstName,
                   "lastName": comment.postedBy.lastName
                 },
-                "text": comment.text,
-                "comments": commentOfComments
+                "text": comment.text
               });
             }        
             if (kind == 'Post') {
@@ -134,15 +130,13 @@ module.exports = function(passport) {
           })
         })
       } else {
+      	console.log("board contents", board.contents.length)      	
         let contents = board.contents.reverse().map(async function(content) {
           let item = content.item;
           let kind = content.kind;
           let comments = [];
           for (let j=0; j<item.comments.length; j++) {
             let comment = item.comments[j];
-            let commentOfComments = comment.comments.map(function(commentOfComment) {
-              return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}, "text": commentOfComment.text}
-            })
             comments.push({
               "id": comment._id,
               "createdAt": comment.createdAt,
@@ -152,7 +146,6 @@ module.exports = function(passport) {
                 "lastName": comment.postedBy.lastName
               },
               "text": comment.text,
-              "comments": commentOfComments
             });
           }        
           if (kind == 'Post') {

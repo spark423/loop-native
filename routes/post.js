@@ -83,7 +83,50 @@ module.exports = function(passport) {
           User.findOneAndUpdate({_id: req.user._id}, {$push: {comments: comment._id}}, function(err, currentUser) {
             if (err) {
               throw err;
-            } else {
+            } else if (req.user._id.toString() === post.postedBy.toString()) {
+              let notificationToFollowers = new Notification({
+                type: 'Comment on Following Post',
+                message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
+                routeID: {
+                  kind: 'Post',
+                  id: post._id
+                }
+              })
+              notificationToFollowers.save(function(err, notificationToFollowers) {
+                if (err) {
+                  throw err;
+                } else {
+                  let followers = post.followers.filter(function(follower) {
+                    return follower.toString() !== post.postedBy.toString() && follower.toString() !== req.user._id.toString();
+                  })
+                  let promises = followers.map(function(followerID) {
+                    return new Promise(function(resolve, reject) {   
+                      User.findOneAndUpdate({_id: followerID}, {$push: {notifications: notificationToFollowers._id}}, function(err) {
+                        if (err) {
+                          throw reject(err);
+                        } else {
+                          resolve();
+                        }
+                      })    
+                    });
+                  });
+                  Promise.all(promises).then(function() {
+                    res.json({comment: {
+                      "id": comment._id,
+                      "postedBy": {
+                        "id": req.user._id,
+                        "firstName": req.user.firstName,
+                        "lastName": req.user.lastName,
+                        "username": req.user.username,
+                        "isLoopUser": true
+                      },
+                      "createdAt": comment.createdAt,
+                      "text": comment.text
+                    }})
+                  }).catch(console.error);                      
+                }
+              })
+            } else  {
               let notificationToPoster = new Notification({
                 type: 'Comment on Created Post',
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
@@ -109,7 +152,10 @@ module.exports = function(passport) {
                       if (err) {
                         throw err;
                       } else {
-                        let promises = post.followers.map(function(followerID) {
+                        let followers = post.followers.filter(function(follower) {
+                          return follower.toString() !== post.postedBy.toString() && follower.toString() !== req.user._id.toString();
+                        })
+                        let promises = followers.map(function(followerID) {
                           return new Promise(function(resolve, reject) {   
                             User.findOneAndUpdate({_id: followerID}, {$push: {notifications: notificationToFollowers._id}}, function(err) {
                               if (err) {
@@ -122,18 +168,20 @@ module.exports = function(passport) {
                         });
                         Promise.all(promises).then(function() {
                           res.json({comment: {
-                          	"id": comment._id,
-                          	"postedBy": {
-                          		"id": req.user._id,
-                          		"firstName": req.user.firstName,
-                          		"lastName": req.user.lastName,
-                          		"username": req.user.username,
-                          		"isLoopUser": true
-                          	},
+                            "id": comment._id,
+                            "postedBy": {
+                              "id": req.user._id,
+                              "firstName": req.user.firstName,
+                              "lastName": req.user.lastName,
+                              "username": req.user.username,
+                              "isLoopUser": true
+                            },
+                            "createdAt": comment.createdAt,
+                            "text": comment.text
                           }})
                         }).catch(console.error);                      
                       }
-                    })
+                    })                    
                   }
                 })
               })
