@@ -11,16 +11,24 @@ module.exports = function(passport) {
     Time.findOneAndUpdate({}, {$push: {follows: {createdAt: Date.now(), user:req.user._id}}}, function(err, time) {
       if (err) {
         throw err;
-      } else {
-        User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: req.body.subscribedBoards}},function(err,user) {
+      } else if (Array.isArray(req.body["subscribedBoards[]"])){
+        User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: req.body["subscribedBoards[]"]}},function(err,user) {
           if (err) {
             throw err;
           } else {
             res.json({success: true})
           }
         })        
+      } else {
+        User.findOneAndUpdate({_id: req.user._id}, {$addToSet: {subscribedBoards: req.body["subscribedBoards[]"]}},function(err,user) {
+          if (err) {
+            throw err;
+          } else {
+            res.json({success: true})
+          }
+        })    
       }
-    })    
+    }) 
   }); 
 
   router.get('/drawer', passport.authenticate('jwt', { session: false }), function(req, res) {

@@ -96,6 +96,8 @@ module.exports = function(passport) {
               "username": req.user.username,
               "isLoopUser": true
             },
+            "text": comment.text,
+            "createdAt": comment.createdAt
           }})
         })
       });      

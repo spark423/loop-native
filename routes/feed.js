@@ -63,10 +63,11 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else {
-        Board.find({$or: [{name: "Campus Updates"},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
+        Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
           } else {
+            console.log(boards);
             let contents = [];
             for (let i=0; i<boards.length; i++) {
               contents = contents.concat(boards[i].contents)

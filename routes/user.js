@@ -20,7 +20,7 @@ module.exports = function(passport) {
 	})
 
 	router.get('/user', passport.authenticate('jwt', { session: false }), function(req, res) {
-		User.findById(req.user._id, function(err, user) {
+		User.findById(req.user._id).populate({path: 'notifications', options: {limit:1}}).exec(function(err, user) {
 			if (err)  {
 				throw err;
 			} else {
