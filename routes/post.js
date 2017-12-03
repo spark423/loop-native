@@ -129,7 +129,7 @@ module.exports = function(passport) {
             } else  {
               let notificationToPoster = new Notification({
                 type: 'Comment on Created Post',
-                message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
+                message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled " + post.title + ".",
                 routeID: {
                   kind: 'Post',
                   id: post._id
@@ -142,7 +142,7 @@ module.exports = function(passport) {
                   } else {
                     let notificationToFollowers = new Notification({
                       type: 'Comment on Following Post',
-                      message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
+                      message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post " + post.title + " that you are following.",
                       routeID: {
                         kind: 'Post',
                         id: post._id
@@ -191,5 +191,54 @@ module.exports = function(passport) {
       })   
     })   
   })
+
+
+  router.put('/posts/:id/flag', passport.authenticate('jwt', { session: false }), function(req, res) {
+  	Post.findOneAndUpdate({_id: req.params.id}, {$set: {flagged: true}},function(err,post) {
+  		let notificationToPoster = new Notification({
+  			type: 'Flagged Post',
+  			message: "Your post " + post.title + " has been flagged. Please wait for the admin's review.",
+  			routeID: {
+  				kind: 'Post',
+  				id: post._id
+  			}
+      })
+      notificationToPoster.save(function(err, notificationToPoster) {
+      	if (err) {
+      		throw err;
+      	} else {
+      		User.findOneAndUpdate({_id: req.user._id}, {$push: {notifications: notificationToPoster}}, function(err,user) {
+      			if (err) {
+      				throw err;
+      			} else {
+      				let notificationToAdmin = new Notification({
+      					type: "Flagged Post",
+      					message: "The post titled (" + post.title + ") has been flagged.",
+      					routeID: {
+      						kind: 'Post',
+      						id: post._id
+      					}      					
+      				})
+      				notificationToAdmin.save(function(err, notificationToAdmin) {
+      					if (err) {
+      						throw err;
+      					} else {
+      						User.updateMany({admin: true}, {$push: {notifications: notificationToAdmin}}, function(err, admin) {
+      							if (err) {
+      								throw err;
+      							} else {
+      								res.json({success: true});
+      							}
+      						})
+      					}
+      				})
+      			}
+      		})
+      	}
+      })  		
+  	})	
+  })
+
+
   return router;
 }

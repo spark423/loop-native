@@ -19,6 +19,41 @@ module.exports = function(passport) {
 		})
 	})
 
+	router.put('/users/:id/block', passport.authenticate('jwt', { session: false }), function(req, res) {
+		User.findOneAndUpdate({_id: req.params.id}, {$push: {blockers: req.user._id}}, function(err, blockedUser) {
+			if (err) {
+				throw error;
+			} else {
+				User.findOneAndUpdate({_id: req.user._id}, {$push: {blocking: req.params.id}}, function(err, blockingUser) {
+					if (err) {
+						throw error;
+					} else {
+						res.json({success: true});
+					}
+				})
+			}
+		})
+	})
+
+	router.put('/users/:id/unblock', passport.authenticate('jwt', { session: false }), function(req, res) {
+		User.findOneAndUpdate({_id: req.params.id}, {$pull: {blockers: req.user._id}}, function(err, blockedUser) {
+			if (err) {
+				throw error;
+			} else {
+				User.findOneAndUpdate({_id: req.user._id}, {$pull: {blocking: req.params.id}}, function(err, blockingUser) {
+					if (err) {
+						throw error;
+					} else {
+						res.json({success: true});
+					}
+				})
+			}
+		})
+	})
+
+
+
+
 	router.get('/user', passport.authenticate('jwt', { session: false }), function(req, res) {
 		User.findById(req.user._id).populate({path: 'notifications', options: {limit:1}}).exec(function(err, user) {
 			if (err)  {

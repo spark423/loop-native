@@ -22,7 +22,9 @@ module.exports = function(passport) {
 			res.json({ success: false, message: 'Please enter email and password.' });
 		} else if (req.body.password !== req.body.confirmPassword) {
 			res.json({ success: false, message: "The two password fields don't match."})
-	  } else {
+	  } else if (!req.body.username.includes('@haverford.edu')) {
+      res.json({ success: false, message: "Username must be a Haverford email."})
+    } else {
 			let newUser = new User({
 				username: req.body.username,
 				password: req.body.password,

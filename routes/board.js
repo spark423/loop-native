@@ -25,113 +25,54 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else if (board.private) {
-        let contents = board.contents.reverse().map(async function(content) {
-          if (content.postedBy === req.user._id.toString()) {
-            let item = content.item;
-            let kind = content.kind;
-            let comments = [];
-            for (let j=0; j<item.comments.length; j++) {
-              let comment = item.comments[j];
-              comments.push({
-                "id": comment._id,
-                "createdAt": comment.createdAt,
-                "postedBy": {
-                  "id": comment.postedBy._id,
-                  "firstName": comment.postedBy.firstName,
-                  "lastName": comment.postedBy.lastName
-                },
-                "text": comment.text
-              });
-            }        
-            if (kind == 'Post') {
-              let postCreator = await User.findById(item.postedBy);
-              let postObject = {
-                "own": req.user._id.toString() === postCreator._id.toString(),
-                "following": req.user.followingPosts.indexOf(item._id) > -1,
-                "id": item._id,
-                "createdAt": item.createdAt,
-                "postedBy": {
-                  "id": postCreator._id,
-                  "firstName": postCreator.firstName,
-                  "lastName": postCreator.lastName,
-                  "postCreator": postCreator.username,
-                  "isLoopUser": true
-                },    
-                "title": item.title,
-                "text": item.text,
-                "comments": comments
-              }               
-              return Promise.resolve(postObject)
-            } else {
-              let attendees = item.attendees.map(function(attendee) {
-                return {"id": attendee._id, "firstName": attendee.firstName, "lastName": attendee.lastName}
-              })
-              let eventCreator = await User.findOne({username: item.contact});
-              if (eventCreator) {
-                let eventObject = {
-                  "own": req.user.username === item.postedBy,
-                  "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
-                  "id": item._id,
-                  "createdAt": item.createdAt,
-                  "postedBy": {
-                    "id": eventCreator._id,
-                    "firstName": eventCreator.firstName,
-                    "lastName": eventCreator.lastName,
-                    "username": eventCreator.username,
-                    "isLoopUser": true
-                  },  
-                  "title": item.title,
-                  "date": item.date,
-                  "startTime": item.startTime,
-                  "endTime": item.endTime,
-                  "location": item.location,
-                  "description": item.description,              
-                  "comments": comments,
-                  "attendees": attendees
-                }
-                return Promise.resolve(eventObject);              
-              } else {
-                let eventObject = {
-                  "own": req.user.username === item.postedBy,
-                  "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
-                  "id": item._id,
-                  "createdAt": item.createdAt,
-                  "postedBy": {
-                    "id": "",
-                    "firstName": "",
-                    "lastName": "",
-                    "username": item.contact,
-                    "isLoopUser": false
-                  },  
-                  "title": item.title,
-                  "date": item.date,
-                  "startTime": item.startTime,
-                  "endTime": item.endTime,
-                  "location": item.location,
-                  "description": item.description,              
-                  "comments": comments,
-                  "attendees": attendees
-                };
-                return Promise.resolve(eventObject);
-              }
-            }
+        let filteredContents = board.contents.filter(function(content) {return content.item.postedBy.toString() === req.user._id.toString()});
+        let contents = filteredContents.reverse().map(function(content) {
+          let item = content.item;
+          let comments = [];
+          for (let j=0; j<item.comments.length; j++) {
+            let comment = item.comments[j];
+            comments.push({
+              "id": comment._id,
+              "createdAt": comment.createdAt,
+              "postedBy": {
+                "id": comment.postedBy._id,
+                "firstName": comment.postedBy.firstName,
+                "lastName": comment.postedBy.lastName
+              },
+              "text": comment.text,
+            });
+          }                           
+          let postObject = {
+            "own": true,
+            "following": req.user.followingPosts.indexOf(item._id) > -1,
+            "id": item._id,
+            "createdAt": item.createdAt,
+            "postedBy": {
+              "id": req.user._id,
+              "firstName": req.user.firstName,
+              "lastName": req.user.lastName,
+              "postCreator": req.user.username,
+              "isLoopUser": true
+            },    
+            "title": item.title,
+            "text": item.text,
+            "comments": comments
           }
+          return postObject
         });
-        Promise.all(contents).then(function(contents) {       
-          res.json({
-            board: {
-              id: board._id,
-              create: board.create,
-              unsubscribable: board.unsubscribable,
-              name: board.name,
-              description: board.description,
-              contents: contents
-            }
-          })
+        res.json({
+          board: {
+            id: board._id,
+            create: board.create,
+            unsubscribable: board.unsubscribable,
+            name: board.name,
+            description: board.description,
+            contents: contents
+          }
         })
       } else {
-      	console.log("board contents", board.contents.length)      	
-        let contents = board.contents.reverse().map(async function(content) {
+        let filteredContents = board.contents.filter(function(content) {return req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged});
+        let contents = filteredContents.reverse().map(async function(content) {
           let item = content.item;
           let kind = content.kind;
           let comments = [];
