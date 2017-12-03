@@ -7,6 +7,7 @@ var boardSchema = new mongoose.Schema({
   unsubscribable: {type: Boolean},
   private: {type: Boolean},
   asset: {type: String},
+  notifications: [{type: mongoose.Schema.Types.ObjectId, ref: 'Notification'}]
   contents: [{
     kind: String,
     item: { type: mongoose.Schema.Types.ObjectId, refPath: 'contents.kind' }

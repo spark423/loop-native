@@ -129,7 +129,7 @@ module.exports = function(passport) {
             } else  {
               let notificationToPoster = new Notification({
                 type: 'Comment on Created Post',
-                message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled " + post.title + ".",
+                message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
                 routeID: {
                   kind: 'Post',
                   id: post._id
@@ -142,7 +142,7 @@ module.exports = function(passport) {
                   } else {
                     let notificationToFollowers = new Notification({
                       type: 'Comment on Following Post',
-                      message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post " + post.title + " that you are following.",
+                      message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                       routeID: {
                         kind: 'Post',
                         id: post._id
@@ -213,7 +213,7 @@ module.exports = function(passport) {
       			} else {
       				let notificationToAdmin = new Notification({
       					type: "Flagged Post",
-      					message: "The post titled (" + post.title + ") has been flagged.",
+      					message: "The post titled \"" + post.title + "\" has been flagged.",
       					routeID: {
       						kind: 'Post',
       						id: post._id
@@ -227,7 +227,13 @@ module.exports = function(passport) {
       							if (err) {
       								throw err;
       							} else {
-      								res.json({success: true});
+                      Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, board) {
+                        if (err) {
+                          throw err;
+                        } else {
+                          res.json({success: true});
+                        }
+                      })
       							}
       						})
       					}
