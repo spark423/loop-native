@@ -227,7 +227,7 @@ module.exports = function(passport) {
       							if (err) {
       								throw err;
       							} else {
-                      Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, board) {
+                      Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
                         if (err) {
                           throw err;
                         } else {
