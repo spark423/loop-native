@@ -61,6 +61,7 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else {
+        console.log("AYO")
         Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
