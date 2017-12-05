@@ -20,8 +20,6 @@ function partition(items, left, right) {
             i++;
         }
 
-        console.log('item', items[j].item.createdAt)
-        console.log('pivot', pivot.item.createdAt)
         while (items[j].item.createdAt > pivot.item.createdAt) {
             j--;
         }
@@ -67,11 +65,11 @@ module.exports = function(passport) {
           if (err) {
             throw err;
           } else {
-            console.log(boards);
             let contents = [];
-            for (let i=0; i<boards.length; i++) {
+            for (var i=0; i<boards.length; i++) {
               contents = contents.concat(boards[i].contents)
             }
+            console.log("board contents", contents) 
             let sortedContents = quickSort(contents, 0, contents.length - 1);
             let feed = sortedContents.reverse().map(async function(content) {
               let item = content.item;
@@ -146,7 +144,7 @@ module.exports = function(passport) {
                     "own": req.user.username === item.contact,
                     "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                     "id": item._id,
-                    "createdAt": item.createdAt,
+                    "createdAt": item.startTime,
                     "postedBy": {
                     	"id": "",
                     	"firstName": "",

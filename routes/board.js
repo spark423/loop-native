@@ -71,8 +71,11 @@ module.exports = function(passport) {
           }
         })
       } else {
+        console.log("contents", board.contents);
         let filteredContents = board.contents.filter(function(content) {return req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged});
+        console.log("here2")
         let contents = filteredContents.reverse().map(async function(content) {
+          console.log("here3");
           let item = content.item;
           let kind = content.kind;
           let comments = [];
@@ -141,7 +144,7 @@ module.exports = function(passport) {
                 "own": req.user.username === item.contact,
                 "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
                 "id": item._id,
-                "createdAt": item.createdAt,
+                "createdAt": item.startTime,
                 "postedBy": {
                   "id": "",
                   "firstName": "",
