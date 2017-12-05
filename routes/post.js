@@ -197,7 +197,7 @@ module.exports = function(passport) {
   	Post.findOneAndUpdate({_id: req.params.id}, {$set: {flagged: true}},function(err,post) {
   		let notificationToPoster = new Notification({
   			type: 'Flagged Post',
-  			message: "Your post " + post.title + " has been flagged. Please wait for the admin's review.",
+  			message: "Your post \"" + post.title + "\" has been flagged. Please wait for the admin's review.",
   			routeID: {
   				kind: 'Post',
   				id: post._id
@@ -227,6 +227,7 @@ module.exports = function(passport) {
       							if (err) {
       								throw err;
       							} else {
+                      console.log("got here")
                       Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
                         if (err) {
                           throw err;

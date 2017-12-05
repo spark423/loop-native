@@ -1,12 +1,13 @@
 var mongoose = require('mongoose');
 
 var commentSchema = new mongoose.Schema({  
-  createdAt: {type: Date, default: Date.now()},
+  createdAt: {type: Date, default: Date.now},
   postedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
   source: {
     kind: String,
     item: { type: mongoose.Schema.Types.ObjectId, refPath: 'source.kind' }
   },
+  flagged: {type: Boolean, default: false},
   text: {type: String},
   comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}]
 });

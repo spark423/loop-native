@@ -61,5 +61,64 @@ module.exports = function(passport) {
   	})
   })
 
+  router.put('/comments/:id/flag', passport.authenticate('jwt', { session: false }), function(req, res) {
+    Comment.findOneAndUpdate({_id: req.params.id}, {$set: {flagged: true}},function(err,comment) {
+      Post.findById(comment.source.item, function(err, sourcePost) {
+        if (err) {
+          throw err;
+        } else {
+          let notificationToCommenter = new Notification({
+            type: 'Flagged Comment',
+            message: "Your comment to the post \"" + sourcePost.title + "\" has been flagged. Please wait for the admin's review.",
+            routeID: {
+              kind: 'Comment',
+              id: comment._id
+            }
+          })
+          notificationToCommenter.save(function(err, notificationToCommenter) {
+            if (err) {
+              throw err;
+            } else {
+              User.findOneAndUpdate({_id: req.user._id}, {$push: {notifications: notificationToCommenter}}, function(err,user) {
+                if (err) {
+                  throw err;
+                } else {
+                  let notificationToAdmin = new Notification({
+                    type: "Flagged Post",
+                    message: "A comment to the post titled \"" + sourcePost.title + "\" has been flagged.",
+                    routeID: {
+                      kind: 'Post',
+                      id: post._id
+                    }               
+                  })
+                  notificationToAdmin.save(function(err, notificationToAdmin) {
+                    if (err) {
+                      throw err;
+                    } else {
+                      User.updateMany({admin: true}, {$push: {notifications: notificationToAdmin}}, function(err, admin) {
+                        if (err) {
+                          throw err;
+                        } else {
+                          Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
+                            if (err) {
+                              throw err;
+                            } else {
+                              res.json({success: true});
+                            }
+                          })
+                        }
+                      })
+                    }
+                  })
+                }
+              })
+            }
+          }) 
+        }
+      })     
+    })  
+  })
+
+
   return router;
 }

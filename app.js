@@ -18,8 +18,6 @@ var user = require('./routes/user');
 var group = require('./routes/group');
 var notification = require('./routes/notification');
 
-
-
 //Express configuration ==============================================================================================================================================================
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(passport.initialize()); 
