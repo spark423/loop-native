@@ -37,6 +37,6 @@ https://gitlab.com/loop-crew/loop/blob/develop/routes/event.js#L5
 
 *\* = required*
 
-/label ~bug
+/label ~Bug
 /cc @sjiang1 @Spartee
 /assign @spark423
