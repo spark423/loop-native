@@ -35,11 +35,9 @@ function partition(items, left, right) {
 }
 
 function quickSort(items, left, right) {
-
     var index;
 
     if (items.length > 1) {
-
         index = partition(items, left, right);
 
         if (left < index - 1) {
@@ -67,31 +65,33 @@ module.exports = function(passport) {
           } else {
             let contents = [];
             for (var i=0; i<boards.length; i++) {
-              contents = contents.concat(boards[i].contents)
+              contents = contents.concat(boards[i].contents);
             }
-            console.log("board contents", contents) 
-            let sortedContents = quickSort(contents, 0, contents.length - 1);
+            let filteredContents = contents.filter(function(content) {
+              return content.item && req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged
+            });
+            let sortedContents = quickSort(filteredContents, 0, filteredContents.length-1);
             let feed = sortedContents.reverse().map(async function(content) {
               let item = content.item;
               let kind = content.kind;
               let comments = [];
-                for (let j=0; j<item.comments.length; j++) {
-                  let comment = item.comments[j];
-                      commentOfComments = comment.comments.map(function(commentOfComment) {
-                        return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}}
-                      })
-                  comments.push({
-                    "id": comment._id,
-                    "createdAt": comment.createdAt,
-                    "postedBy": {
-                      "id": comment.postedBy._id,
-                      "firstName": comment.postedBy.firstName,
-                      "lastName": comment.postedBy.lastName
-                    },
-                    "text": comment.text,
-                    "comments": commentOfComments
-                  });
-                }        
+              for (let j=0; j<item.comments.length; j++) {
+                let comment = item.comments[j];
+                let commentOfComments = comment.comments.map(function(commentOfComment) {
+                  return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}}
+                })
+                comments.push({
+                  "id": comment._id,
+                  "createdAt": comment.createdAt,
+                  "postedBy": {
+                    "id": comment.postedBy._id,
+                    "firstName": comment.postedBy.firstName,
+                    "lastName": comment.postedBy.lastName
+                  },
+                  "text": comment.text,
+                  "comments": commentOfComments
+                });
+              }        
               if (kind == 'Post') {
               	let postCreator = await User.findById(item.postedBy);
                 let postObject = {
