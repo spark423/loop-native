@@ -22,11 +22,11 @@ module.exports = function(passport) {
 			res.json({ success: false, message: 'Please enter email and password.' });
 		} else if (req.body.password !== req.body.confirmPassword) {
 			res.json({ success: false, message: "The two password fields don't match."})
-	  } else if (!req.body.username.includes('@haverford.edu')) {
+	  } else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
       res.json({ success: false, message: "Username must be a Haverford email."})
     } else {
 			let newUser = new User({
-				username: req.body.username,
+				username: req.body.username.toLowerCase(),
 				password: req.body.password,
 				firstName: req.body.firstName,
 				lastName: req.body.lastName,
