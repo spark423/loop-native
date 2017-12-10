@@ -59,7 +59,7 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else {
-        Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
+        Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'board'},{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
           } else {
@@ -106,7 +106,7 @@ module.exports = function(passport) {
                     "username": postCreator.username,
                     "isLoopUser": true
                   },                  
-                  "title": item.title,
+                  "title": item.board.name,
                   "text": item.text,
                   "comments": comments
                 }
