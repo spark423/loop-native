@@ -12,23 +12,13 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else if (req.body["subscribedBoards[]"]) {
-        if (Array.isArray(req.body["subscribedBoards[]"])){
-          User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: req.body["subscribedBoards[]"]}},function(err,user) {
-            if (err) {
-              throw err;
-            } else {
-              res.json({success: true})
-            }
-          })        
-        } else {
-          User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: [req.body["subscribedBoards[]"]]}},function(err,user) {
-            if (err) {
-              throw err;
-            } else {
-              res.json({success: true})
-            }
-          })    
-        }
+        User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: [].concat(req.body["subscribedBoards[]"])}},function(err,user) {
+          if (err) {
+            throw err;
+          } else {
+            res.json({success: true})
+          }
+        })             
       } else {
         User.findOneAndUpdate({_id: req.user._id}, {$set: {subscribedBoards: []}},function(err,user) {
           if (err) {
