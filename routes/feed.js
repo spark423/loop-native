@@ -61,7 +61,6 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else {
-        console.log("AYO")
         Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
@@ -70,7 +69,6 @@ module.exports = function(passport) {
             for (var i=0; i<boards.length; i++) {
               contents = contents.concat(boards[i].contents)
             }
-            console.log("board contents", contents) 
             let sortedContents = quickSort(contents, 0, contents.length - 1);
             let feed = sortedContents.reverse().map(async function(content) {
               let item = content.item;

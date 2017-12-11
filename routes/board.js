@@ -71,11 +71,8 @@ module.exports = function(passport) {
           }
         })
       } else {
-        console.log("contents", board.contents);
         let filteredContents = board.contents.filter(function(content) {return req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged});
-        console.log("here2")
         let contents = filteredContents.reverse().map(async function(content) {
-          console.log("here3");
           let item = content.item;
           let kind = content.kind;
           let comments = [];
