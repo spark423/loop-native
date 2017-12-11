@@ -75,20 +75,20 @@ module.exports = function(passport) {
   		source: {"kind": 'Event', "item": req.params.id},
   		text: req.body.text
   	})
-  	newComment.save(function(err, newComment) {
+  	newComment.save(function(err, comment) {
   		if (err) {
         throw err;
       }
-      Event.findOneAndUpdate({_id: req.params.id}, {$push: {comments: newComment._id}}, function(err) {
+      Event.findOneAndUpdate({_id: req.params.id}, {$push: {comments: comment._id}}, function(err) {
         if (err) {
           throw err;
         }
-        User.findOneAndUpdate({_id: req.user._id}, {$push: {comments: newComment._id}}, function(err) {
+        User.findOneAndUpdate({_id: req.user._id}, {$push: {comments: comment._id}}, function(err) {
           if (err) {
             throw err;
           }
           res.json({comment: {
-            "id": newComment._id,
+            "id": comment._id,
             "postedBy": {
               "id": req.user._id,
               "firstName": req.user.firstName,

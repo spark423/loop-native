@@ -16,11 +16,21 @@ function partition(items, left, right) {
       i       = left,
       j       = right;
     while (i <= j) {
-        while (items[i].item.createdAt < pivot.item.createdAt) {
+        while ( (items[i].kind === "Post" && pivot.kind === "Post" && items[i].item.createdAt < pivot.item.createdAt) || 
+                (items[i].kind === "Post" && pivot.kind === "Event" && items[i].item.createdAt < pivot.item.updatedTime) || 
+                (items[i].kind === "Event" && pivot.kind === "Post"  && items[i].item.updatedTime < pivot.item.createdAt) ||
+                (items[i].kind === "Event" && pivot.kind === "Event" && items[i].item.date < pivot.item.date)
+              ) 
+        {
             i++;
         }
 
-        while (items[j].item.createdAt > pivot.item.createdAt) {
+        while ( (items[j].kind === "Post" && pivot.kind === "Post" && items[j].item.createdAt > pivot.item.createdAt) || 
+                (items[j].kind === "Post" && pivot.kind === "Event" && items[j].item.createdAt > pivot.item.updatedTime) || 
+                (items[j].kind === "Event" && pivot.kind === "Post" && items[j].item.updatedTime > pivot.item.createdAt) ||
+                (items[j].kind === "Event" && pivot.kind === "Event" && items[j].item.date > pivot.item.date)
+              ) 
+        {
             j--;
         }
 
@@ -35,11 +45,9 @@ function partition(items, left, right) {
 }
 
 function quickSort(items, left, right) {
-
     var index;
 
     if (items.length > 1) {
-
         index = partition(items, left, right);
 
         if (left < index - 1) {
@@ -61,36 +69,39 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else {
-        Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
+        Board.find({$or: [{name: {$in: ["Campus Updates","Challenges"]}},{_id: {$in: user.subscribedBoards}}]}).populate([{path: 'contents.item', populate: [{path: 'board'},{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}]).exec(function(err, boards) {
           if (err) {
             throw err;
           } else {
             let contents = [];
             for (var i=0; i<boards.length; i++) {
-              contents = contents.concat(boards[i].contents)
+              contents = contents.concat(boards[i].contents);
             }
-            let sortedContents = quickSort(contents, 0, contents.length - 1);
+            let filteredContents = contents.filter(function(content) {
+              return content.item && req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged
+            });
+            let sortedContents = quickSort(filteredContents, 0, filteredContents.length-1);
             let feed = sortedContents.reverse().map(async function(content) {
               let item = content.item;
               let kind = content.kind;
               let comments = [];
-                for (let j=0; j<item.comments.length; j++) {
-                  let comment = item.comments[j];
-                      commentOfComments = comment.comments.map(function(commentOfComment) {
-                        return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}}
-                      })
-                  comments.push({
-                    "id": comment._id,
-                    "createdAt": comment.createdAt,
-                    "postedBy": {
-                      "id": comment.postedBy._id,
-                      "firstName": comment.postedBy.firstName,
-                      "lastName": comment.postedBy.lastName
-                    },
-                    "text": comment.text,
-                    "comments": commentOfComments
-                  });
-                }        
+              for (let j=0; j<item.comments.length; j++) {
+                let comment = item.comments[j];
+                let commentOfComments = comment.comments.map(function(commentOfComment) {
+                  return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}}
+                })
+                comments.push({
+                  "id": comment._id,
+                  "createdAt": comment.createdAt,
+                  "postedBy": {
+                    "id": comment.postedBy._id,
+                    "firstName": comment.postedBy.firstName,
+                    "lastName": comment.postedBy.lastName
+                  },
+                  "text": comment.text,
+                  "comments": commentOfComments
+                });
+              }        
               if (kind == 'Post') {
               	let postCreator = await User.findById(item.postedBy);
                 let postObject = {
@@ -105,7 +116,7 @@ module.exports = function(passport) {
                     "username": postCreator.username,
                     "isLoopUser": true
                   },                  
-                  "title": item.title,
+                  "title": item.board.name,
                   "text": item.text,
                   "comments": comments
                 }

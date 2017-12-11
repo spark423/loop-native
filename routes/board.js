@@ -25,7 +25,7 @@ module.exports = function(passport) {
       if (err) {
         throw err;
       } else if (board.private) {
-        let filteredContents = board.contents.filter(function(content) {return content.item.postedBy.toString() === req.user._id.toString()});
+        let filteredContents = board.contents.filter(function(content) {return content.item && content.item.postedBy.toString() === req.user._id.toString()});
         let contents = filteredContents.reverse().map(function(content) {
           let item = content.item;
           let comments = [];
@@ -71,7 +71,9 @@ module.exports = function(passport) {
           }
         })
       } else {
-        let filteredContents = board.contents.filter(function(content) {return req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged});
+        let filteredContents = board.contents.filter(function(content) {
+          return content.item && req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged
+        });
         let contents = filteredContents.reverse().map(async function(content) {
           let item = content.item;
           let kind = content.kind;
