@@ -9,7 +9,7 @@ var Notification = require('../models/notification');
 
 
 module.exports = function(passport) {
-	router.put('/events/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
+	router.put('/events/:id/attend', passport.authenticate('jwt', { session: false }), function(req, res) {
 		Event.findOneAndUpdate({_id: req.params.id}, {$push: {attendees: req.user._id}}, function(err, event) {
 			if (err) {
 				throw err;
