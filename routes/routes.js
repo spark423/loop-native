@@ -61,7 +61,7 @@ module.exports = function(passport) {
 
   router.post('/login', function(req, res) {  
     User.findOne({
-      username: req.body.username
+      username: req.body.username.toLowerCase()
     }, function(err, user) {
       if (err) throw err;
       if (!user) {
