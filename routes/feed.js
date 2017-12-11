@@ -16,11 +16,21 @@ function partition(items, left, right) {
       i       = left,
       j       = right;
     while (i <= j) {
-        while (items[i].item.createdAt < pivot.item.createdAt) {
+        while ( (items[i].kind === "Post" && pivot.kind === "Post" && items[i].item.createdAt < pivot.item.createdAt) || 
+                (items[i].kind === "Post" && pivot.kind === "Event" && items[i].item.createdAt < pivot.item.updatedTime) || 
+                (items[i].kind === "Event" && pivot.kind === "Post"  && items[i].item.updatedTime < pivot.item.createdAt) ||
+                (items[i].kind === "Event" && pivot.kind === "Event" && items[i].item.date < pivot.item.date)
+              ) 
+        {
             i++;
         }
 
-        while (items[j].item.createdAt > pivot.item.createdAt) {
+        while ( (items[j].kind === "Post" && pivot.kind === "Post" && items[j].item.createdAt > pivot.item.createdAt) || 
+                (items[j].kind === "Post" && pivot.kind === "Event" && items[j].item.createdAt > pivot.item.updatedTime) || 
+                (items[j].kind === "Event" && pivot.kind === "Post" && items[j].item.updatedTime > pivot.item.createdAt) ||
+                (items[j].kind === "Event" && pivot.kind === "Event" && items[j].item.date > pivot.item.date)
+              ) 
+        {
             j--;
         }
 
