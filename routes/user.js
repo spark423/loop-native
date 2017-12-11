@@ -6,16 +6,19 @@ var User = require('../models/user');
 module.exports = function(passport) {
 	router.get('/users/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
 		User.findById(req.params.id, function(err, user) {
-			if (err) throw err;
-			res.json({
-				"user": {
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          major: user.major,
-          classYear: user.classYear
-        }				
-		  })
+			if (err) {
+				throw err;
+			} else {
+				res.json({
+					"user": {
+						username: user.username,
+						firstName: user.firstName,
+						lastName: user.lastName,
+						major: user.major || "",
+						classYear: user.classYear || ""
+					}				
+				})
+			}
 		})
 	})
 
@@ -64,8 +67,8 @@ module.exports = function(passport) {
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            major: user.major,
-            classYear: user.classYear
+            major: user.major || "",
+            classYear: user.classYear || ""
           }				
 		    })
 			}
