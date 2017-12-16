@@ -33,6 +33,7 @@ module.exports = function(passport) {
             let comment = item.comments[j];
             comments.push({
               "id": comment._id,
+              "own": req.user._id.toString() === comment.postedBy._id.toString(),
               "createdAt": comment.createdAt,
               "postedBy": {
                 "id": comment.postedBy._id,
@@ -82,6 +83,7 @@ module.exports = function(passport) {
             let comment = item.comments[j];
             comments.push({
               "id": comment._id,
+              "own": req.user._id.toString() === comment.postedBy._id.toString(),              
               "createdAt": comment.createdAt,
               "postedBy": {
                 "id": comment.postedBy._id,

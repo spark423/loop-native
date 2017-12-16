@@ -89,6 +89,7 @@ module.exports = function(passport) {
           }
           res.json({comment: {
             "id": comment._id,
+            "own": true,
             "postedBy": {
               "id": req.user._id,
               "firstName": req.user.firstName,
