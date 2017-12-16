@@ -112,6 +112,7 @@ module.exports = function(passport) {
                   });
                   Promise.all(promises).then(function() {
                     res.json({comment: {
+                      "own": req.user._id.toString() === comment.postedBy._id.toString(),                
                       "id": comment._id,
                       "postedBy": {
                         "id": req.user._id,
@@ -227,7 +228,6 @@ module.exports = function(passport) {
       							if (err) {
       								throw err;
       							} else {
-                      console.log("got here")
                       Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
                         if (err) {
                           throw err;

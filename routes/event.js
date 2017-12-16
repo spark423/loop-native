@@ -88,6 +88,7 @@ module.exports = function(passport) {
             throw err;
           }
           res.json({comment: {
+            "own": req.user._id.toString() === comment.postedBy._id.toString(),	
             "id": comment._id,
             "postedBy": {
               "id": req.user._id,

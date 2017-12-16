@@ -91,6 +91,7 @@ module.exports = function(passport) {
                   return {"id": commentOfComment._id, "createdAt": commentOfComment.createdAt, "postedBy": {"id": commentOfComment.postedBy._id, "firstName": commentOfComment.postedBy.firstName, "lastName": commentOfComment.postedBy.lastName}}
                 })
                 comments.push({
+                  "own": req.user._id.toString() === comment.postedBy._id.toString(),            
                   "id": comment._id,
                   "createdAt": comment.createdAt,
                   "postedBy": {
