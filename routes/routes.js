@@ -90,26 +90,26 @@ module.exports = function(passport) {
     async.waterfall([
       function(done) {
         crypto.randomBytes(20, function(err, buf) {
-          var token = buf.toString('hex');
-          done(err, token);
+          let emailToken = buf.toString('hex');
+          done(err, emailToken);
         });
       },
-      function(token, done) {
+      function(emailToken, done) {
         User.findOne({ username: req.body.username }, function(err, user) {
           if (!user) {
             res.send(401, {success: false, message: 'No account with that email address exists.'});
            return;
           }
-
-          user.resetPasswordToken = token;
+          let jwtoken = jwt.sign({data: user}, secret);
+          user.resetPasswordToken = emailToken;
           user.resetPasswordExpires = Date.now() + 36000000; // 1 hour
  
           user.save(function(err) {
-            done(err, token, user);
+            done(err, jwtoken, emailToken, user);
           });
         });
       },
-      function(token, user, done) {
+      function(jwtoken, emailToken, user, done) {
         let options = {
     	    auth: {
     		    api_user: username,
@@ -124,16 +124,16 @@ module.exports = function(passport) {
           to: user.username,
           subject: ' Password Reset',
           text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
-            'Paste the following token ' + token + ' into the token field to set a new password.\n\n' +  
+            'Paste the following token ' + emailToken + ' into the token field to set a new password.\n\n' +  
             'If you did not request this, please ignore this email and your password will remain unchanged.\n'
          };
         client.sendMail(email, function(err){
-      	  done(err)
+      	  done(err, jwtoken)
         });  
       }
-    ], function(err) {
+    ], function(err, jwtoken) {
       if (err) throw err;
-      res.send({success: true})
+      res.send({success: true, token: 'JWT ' + jwtoken})
     });
   })
 
