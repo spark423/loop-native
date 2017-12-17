@@ -170,6 +170,7 @@ module.exports = function(passport) {
                         Promise.all(promises).then(function() {
                           res.json({comment: {
                             "id": comment._id,
+                            "own": true,
                             "postedBy": {
                               "id": req.user._id,
                               "firstName": req.user.firstName,
