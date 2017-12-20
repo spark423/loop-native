@@ -27,8 +27,8 @@ module.exports = function(passport) {
 									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
 							    routeID: {
 								    kind: 'Event',
-						   	    id: event._id,
-                    boardId: event.board,
+                    id: event._id,
+                    boardId: event.board
                   }
 						    })
 						    notificationToCreator.save(function(err, notificationToCreator){
