@@ -219,7 +219,7 @@ module.exports = function(passport) {
   			message: "Your post \"" + post.title + "\" has been flagged. Please wait for the admin's review.",
   			routeID: {
   				kind: 'Post',
-          id: post._id,
+  				id: post._id,
   				boardId: post.board
   			}
       })
@@ -236,7 +236,7 @@ module.exports = function(passport) {
       					message: "The post titled \"" + post.title + "\" has been flagged.",
       					routeID: {
       						kind: 'Post',
-                  id: post._id,
+      						id: post._id,
       						boardId: post.board
       					}      					
       				})
