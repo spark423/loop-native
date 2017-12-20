@@ -11,7 +11,7 @@ module.exports = function(passport) {
         throw err;
       } else {
       	let notifications = user.notifications.map(function(notification) {
-      		return {"type": notification.type, "createdAt": notification.createdAt, "message": notification.message, "routeID": notification.routeID}
+      		return {"type": notification.type, "createdAt": notification.createdAt, "message": notification.message, "routeID": {"kind": notification.routeID.kind, "contentId": notification.routeID.id, "boardId": notification.routeID.boardId}}
       	})
       	res.json({notifications: notifications});
       }

@@ -89,7 +89,7 @@ module.exports = function(passport) {
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                 routeID: {
                   kind: 'Post',
-                  contentId: post._id,
+                  id: post._id,
                   boardId: post.board
                 }
               })
@@ -134,7 +134,7 @@ module.exports = function(passport) {
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
                 routeID: {
                   kind: 'Post',
-                  contentId: post._id,
+                  id: post._id,
                   boardId: post.board
                 }
               })
@@ -148,7 +148,7 @@ module.exports = function(passport) {
                       message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                       routeID: {
                         kind: 'Post',
-                        contentId: post._id,
+                        id: post._id,
                         boardId: post.board
                       }
                     })
@@ -219,7 +219,7 @@ module.exports = function(passport) {
   			message: "Your post \"" + post.title + "\" has been flagged. Please wait for the admin's review.",
   			routeID: {
   				kind: 'Post',
-          contentId: post._id,
+          id: post._id,
   				boardId: post.board
   			}
       })
@@ -236,7 +236,7 @@ module.exports = function(passport) {
       					message: "The post titled \"" + post.title + "\" has been flagged.",
       					routeID: {
       						kind: 'Post',
-                  contentId: post._id,
+                  id: post._id,
       						boardId: post.board
       					}      					
       				})
