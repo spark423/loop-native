@@ -25,11 +25,10 @@ module.exports = function(passport) {
 								let notificationToCreator = new Notification({
 									type: 'Attend Event',
 									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
-                  routeID: {
-                    kind: 'Event',
-                    id: event._id,
-                    boardId: event.board
-                  }
+									routeID: kind: 'Event',
+									id: event._id,
+									boardId: event.board
+								}
 						    })
 						    notificationToCreator.save(function(err, notificationToCreator){
 						    	if (err) {
