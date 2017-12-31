@@ -25,10 +25,10 @@ module.exports = function(passport) {
 								let notificationToCreator = new Notification({
 									type: 'Attend Event',
 									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
-							    routeID: {
-								    kind: 'Event',
-						   	    id: event._id
-                  }
+									routeID: kind: 'Event',
+									id: event._id,
+									boardId: event.board
+								}
 						    })
 						    notificationToCreator.save(function(err, notificationToCreator){
 						    	if (err) {
@@ -88,7 +88,7 @@ module.exports = function(passport) {
             throw err;
           }
           res.json({comment: {
-            "own": req.user._id.toString() === comment.postedBy._id.toString(),	
+            "own": req.user._id.toString() === comment.postedBy.toString(),	
             "id": comment._id,
             "own": true,
             "postedBy": {

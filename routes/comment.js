@@ -72,7 +72,8 @@ module.exports = function(passport) {
             message: "Your comment to the post \"" + sourcePost.title + "\" has been flagged. Please wait for the admin's review.",
             routeID: {
               kind: 'Comment',
-              id: comment._id
+              id: comment._id,
+              boardId: sourcePost.board
             }
           })
           notificationToCommenter.save(function(err, notificationToCommenter) {
@@ -88,7 +89,8 @@ module.exports = function(passport) {
                     message: "A comment to the post titled \"" + sourcePost.title + "\" has been flagged.",
                     routeID: {
                       kind: 'Post',
-                      id: post._id
+                      id: sourcePost._id,
+                      boardId: sourcePost.board
                     }               
                   })
                   notificationToAdmin.save(function(err, notificationToAdmin) {
@@ -99,7 +101,7 @@ module.exports = function(passport) {
                         if (err) {
                           throw err;
                         } else {
-                          Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
+                          Board.findOneAndUpdate({_id: sourcePost.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
                             if (err) {
                               throw err;
                             } else {
