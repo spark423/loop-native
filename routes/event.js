@@ -25,24 +25,25 @@ module.exports = function(passport) {
 								let notificationToCreator = new Notification({
 									type: 'Attend Event',
 									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
-									routeID: kind: 'Event',
-									id: event._id,
-									boardId: event.board
-								}
-						    })
-						    notificationToCreator.save(function(err, notificationToCreator){
-						    	if (err) {
-						    		throw err;
-						    	} else {
-						        User.findOneAndUpdate({_id: eventCreator._id}, {$push: {notifications: notificationToCreator._id}}, function(err) {
-						    	    if (err) {
-						    		    throw err;
-						    	    } else {
-						    		    res.json({success: true});
-						    	    }
-						        })
-						    	}
-						    })
+									routeID: {
+										kind: 'Event',
+										id: event._id,
+										boardId: event.board
+									}
+								})
+								notificationToCreator.save(function(err, notificationToCreator){
+									if (err) {
+										throw err;
+									} else {
+										User.findOneAndUpdate({_id: eventCreator._id}, {$push: {notifications: notificationToCreator._id}}, function(err) {
+											if (err) {
+												throw err;
+											} else {
+												res.json({success: true});
+											}
+										})
+									}
+								})
 							} else {
 								res.json({success: true});
 							}
