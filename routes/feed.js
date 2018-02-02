@@ -135,7 +135,11 @@ module.exports = function(passport) {
                 if (eventCreator) {
                 	let eventObject = {
                     "own": req.user.username === item.contact,
-                    "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
+                    "attending": req.user.attendedEvents.indexOf(item._id) > -1,
+                    "board": {
+                      id: item.board.id,
+                      name: item.board.name
+                    },                                
                     "id": item._id,
                     "createdAt": item.createdAt,
                     "postedBy": {
@@ -158,7 +162,11 @@ module.exports = function(passport) {
                 } else {
                 	let eventObject = {
                     "own": req.user.username === item.contact,
-                    "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
+                    "attending": req.user.attendedEvents.indexOf(item._id) > -1,
+                    "board": {
+                      id: item.board.id,
+                      name: item.board.name
+                    },                             
                     "id": item._id,
                     "createdAt": item.startTime,
                     "postedBy": {
