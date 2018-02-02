@@ -109,6 +109,10 @@ module.exports = function(passport) {
                 let postObject = {
                   "own": req.user._id.toString() === postCreator._id.toString(),
                   "following": req.user.followingPosts.indexOf(item._id) > -1,
+                  "board": {
+                    id: item.board.id,
+                    name: item.board.name
+                  },
                   "id": item._id,
                   "createdAt": item.createdAt,
                   "postedBy": {

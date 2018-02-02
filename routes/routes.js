@@ -41,7 +41,7 @@ module.exports = function(passport) {
         	if (err) {
         		throw err;
         	} else {
-            User.findOneAndUpdate({_id: newUser._id}, {$push: {adminGroups: newUser._id, joinedGroups: newUser._id}}, function(err, updatedUser) {
+            User.findOneAndUpdate({_id: newUser._id}, {$push: {adminGroups: group._id, joinedGroups: group._id}}, function(err, updatedUser) {
             	if (err) {
             		throw err;
             	} else {
