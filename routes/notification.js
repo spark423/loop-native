@@ -9,6 +9,9 @@ module.exports = function(passport) {
     let comparisonDate = new Date(date.getTime() - 60 * 60 * 24 * 1000);    
     Notification.find({to: req.user._id, $or: [{readAt: {$exists: false}},{readAt: {$gte: comparisonDate}}]}).sort({createdAt: -1})
     .then(function(notifications) {
+      for (var i=0; i<notifications.length; i++) {
+        console.log(notifications[i].createdAt)
+      }
       let filteredNotifications = notifications.map(function(notification) {
         return {"id": notification._id, "type": notification.type, "createdAt": notification.createdAt, "message": notification.message, "routeID": {"kind": notification.routeID.kind, "contentId": notification.routeID.id, "boardId": notification.routeID.boardId}, "read": notification.read};
       })

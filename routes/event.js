@@ -18,7 +18,7 @@ module.exports = function(passport) {
 			if (eventCreator) {
 				let notificationToCreator = new Notification({
 					to: user._id,
-					type: 'Event',
+					type: 'Attending Event',
 					message: user.firstName + " " + user.lastName + " is attending your event: " + event.title,
 					routeID: {
 						kind: 'Event',
