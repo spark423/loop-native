@@ -9,49 +9,63 @@ var Notification = require('../models/notification');
 
 
 module.exports = function(passport) {
-	router.put('/events/:id/attend', passport.authenticate('jwt', { session: false }), function(req, res) {
-		Event.findOneAndUpdate({_id: req.params.id}, {$push: {attendees: req.user._id}}, function(err, event) {
-			if (err) {
-				throw err;
-			} else {
-				User.findOneAndUpdate({_id: req.user._id}, {$push: {attendedEvents: req.params.id}}, function(err, currentUser) {
-					if (err) {
-						throw err;
-					} else {
-						User.findOne({username: event.postedBy}, function(err, eventCreator) {
-							if (err) {
-								throw err;
-							} else if (eventCreator) {
-								let notificationToCreator = new Notification({
-									type: 'Attend Event',
-									message: currentUser.firstName + " " + currentUser.lastName + " is attending your event: " + event.title,
-							    routeID: {
-								    kind: 'Event',
-						   	    id: event._id
-                  }
-						    })
-						    notificationToCreator.save(function(err, notificationToCreator){
-						    	if (err) {
-						    		throw err;
-						    	} else {
-						        User.findOneAndUpdate({_id: eventCreator._id}, {$push: {notifications: notificationToCreator._id}}, function(err) {
-						    	    if (err) {
-						    		    throw err;
-						    	    } else {
-						    		    res.json({success: true});
-						    	    }
-						        })
-						    	}
-						    })
-							} else {
-								res.json({success: true});
-							}
-						})						
+	router.put('/events/:id/attend', passport.authenticate('jwt', { session: false }), async function(req, res) {
+		let userPromise = User.findOneAndUpdate({_id: req.user._id}, {$addToSet: {attendedEvents: req.params.id}}, {new: true});
+		let eventPromise = Event.findOneAndUpdate({_id: req.params.id}, {$addToSet: {attendees: req.user._id}}, {new: true});
+		Promise.all([userPromise, eventPromise])
+		.then(async function([user,event]) {
+			let eventCreator = await User.findOne({username: event.contact});
+			if (eventCreator) {
+				let notificationToCreator = new Notification({
+					to: user._id,
+					type: 'Event',
+					message: user.firstName + " " + user.lastName + " is attending your event: " + event.title,
+					routeID: {
+						kind: 'Event',
+						id: event._id,
+						boardId: event.board
 					}
 				})
+				await notificationToCreator.save();
 			}
+			return [user, event]
+		})
+		.then(function([user, event]) {
+			res.json({user: {
+				id: user._id,
+				username: user.username,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				attendedEvents: user.attendedEvents
+			}})
+		})
+		.catch(function(err) {
+			res.status(500).send(err);
 		})
 	})
+
+
+
+	router.put('/events/:id/unattend', passport.authenticate('jwt', { session: false }), function(req, res) {
+		let userPromise = User.findOneAndUpdate({_id: req.user._id}, {$pull: {attendedEvents: req.params.id}}, {new: true});
+		let eventPromise = Event.findOneAndUpdate({_id: req.params.id}, {$pull: {attendees: req.user._id}}, {new: true});
+		Promise.all([userPromise, eventPromise])
+		.then(function([user, event]) {
+			res.json({user: {
+				id: user._id,
+				username: user.username,
+				firstName: user.firstName,
+				lastName: user.lastName,
+				attendedEvents: user.attendedEvents
+			}})
+		})
+		.catch(function(err) {
+			res.status(500).send(err);
+		})
+	})
+
+
+
 
   router.delete('/events/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
 	  Event.findById(req.params.id, function(err, event) {
