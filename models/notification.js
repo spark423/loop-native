@@ -9,7 +9,9 @@ var notificationSchema = new mongoose.Schema({
 		kind: String,
 		id: {type: mongoose.Schema.Types.ObjectId, refPath: 'source.kind'},
 		boardId: {type: mongoose.Schema.Types.ObjectId, refPath: 'Board'}
-	}
+	},
+	read: {type: Boolean, default: false},
+	readAt: {type: Date}
 });
 
 module.exports = mongoose.model('Notification', notificationSchema);
