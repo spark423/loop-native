@@ -83,13 +83,14 @@ module.exports = function(passport) {
           User.findOneAndUpdate({_id: req.user._id}, {$push: {comments: comment._id}}, function(err, currentUser) {
             if (err) {
               throw err;
-            } else if (req.user._id.toString() === post.postedBy.toString()) {
+            } else if (req.user._id.toString() === post.postedBy.toString() && post.followers.length > 0) {
               let notificationToFollowers = new Notification({
                 type: 'Comment on Following Post',
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                 routeID: {
                   kind: 'Post',
-                  id: post._id
+                  id: post._id,
+                  boardId: post.board
                 }
               })
               notificationToFollowers.save(function(err, notificationToFollowers) {
@@ -112,6 +113,7 @@ module.exports = function(passport) {
                   });
                   Promise.all(promises).then(function() {
                     res.json({comment: {
+                      "own": req.user._id.toString() === comment.postedBy.toString(),                
                       "id": comment._id,
                       "postedBy": {
                         "id": req.user._id,
@@ -132,20 +134,22 @@ module.exports = function(passport) {
                 message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on your post titled \"" + post.title + "\".",
                 routeID: {
                   kind: 'Post',
-                  id: post._id
+                  id: post._id,
+                  boardId: post.board
                 }
               })
               notificationToPoster.save(function(err, notificationToPoster) {
                 User.findOneAndUpdate({_id: post.postedBy}, {$push: {notifications: notificationToPoster._id}}, function(err) {
                   if (err) {
                     throw err;
-                  } else {
+                  } else if (post.followers.length > 0) {
                     let notificationToFollowers = new Notification({
                       type: 'Comment on Following Post',
                       message: currentUser.firstName + " " + currentUser.lastName + " " + "commented on the post \"" + post.title + "\" that you are following.",
                       routeID: {
                         kind: 'Post',
-                        id: post._id
+                        id: post._id,
+                        boardId: post.board
                       }
                     })
                     notificationToFollowers.save(function(err, notificationToFollowers) {
@@ -169,6 +173,7 @@ module.exports = function(passport) {
                         Promise.all(promises).then(function() {
                           res.json({comment: {
                             "id": comment._id,
+                            "own": true,
                             "postedBy": {
                               "id": req.user._id,
                               "firstName": req.user.firstName,
@@ -182,6 +187,20 @@ module.exports = function(passport) {
                         }).catch(console.error);                      
                       }
                     })                    
+                  } else {
+                    res.json({comment: {
+                      "id": comment._id,
+                      "own": true,
+                      "postedBy": {
+                        "id": req.user._id,
+                        "firstName": req.user.firstName,
+                        "lastName": req.user.lastName,
+                        "username": req.user.username,
+                        "isLoopUser": true
+                      },
+                      "createdAt": comment.createdAt,
+                      "text": comment.text
+                    }})                    
                   }
                 })
               })
@@ -200,7 +219,8 @@ module.exports = function(passport) {
   			message: "Your post \"" + post.title + "\" has been flagged. Please wait for the admin's review.",
   			routeID: {
   				kind: 'Post',
-  				id: post._id
+  				id: post._id,
+  				boardId: post.board
   			}
       })
       notificationToPoster.save(function(err, notificationToPoster) {
@@ -216,7 +236,8 @@ module.exports = function(passport) {
       					message: "The post titled \"" + post.title + "\" has been flagged.",
       					routeID: {
       						kind: 'Post',
-      						id: post._id
+      						id: post._id,
+      						boardId: post.board
       					}      					
       				})
       				notificationToAdmin.save(function(err, notificationToAdmin) {
@@ -227,7 +248,6 @@ module.exports = function(passport) {
       							if (err) {
       								throw err;
       							} else {
-                      console.log("got here")
                       Board.findOneAndUpdate({_id: post.board}, {$push: {notifications: notificationToAdmin}}, function(err, originBoard) {
                         if (err) {
                           throw err;

@@ -35,4 +35,4 @@
 
 
 /label ~Bug
-/assign @Spartee
+/cc @Spartee @spark423 @sjiang1
