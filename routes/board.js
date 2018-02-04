@@ -7,19 +7,16 @@ var User = require('../models/user');
 var Event = require('../models/event');
 
 module.exports = function(passport) {
-  router.get('/boards', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Board.find({}, function(err, boards) {
-      if (err) {
-        throw err;
-      } else {
-        let boardsArr = boards.map(function(board) {
-          return {"id": board._id, "name": board.name};
-        })
-        res.json({"boards": boardsArr});
-      }
+  router.get('/boards', passport.authenticate('jwt', {session:false}), function(req, res) {
+    Board.find({create: true}).select('name')
+    .then(function(boards) {
+      res.json({boards: boards})
+    })
+    .catch(function(err) {
+      res.status(500).send(err);
     })
   })
-
+  
   router.get('/boards/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
     Board.findById(req.params.id).populate({path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}).lean().exec(function(err, board) {
       if (err) {
