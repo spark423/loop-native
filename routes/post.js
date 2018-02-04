@@ -80,10 +80,7 @@ module.exports = function(passport) {
       await User.findOneAndUpdate({_id: req.user._id}, {$push: {comments: comment._id}})
     })
     let updatePostPromise = commentPromise.then(async function(comment) {
-      console.log("me", req.user._id)
       let post = await Post.findOneAndUpdate({_id: req.params.id}, {$push: {comments: comment._id}});
-      console.log("him", post.postedBy);
-      console.log(req.user._id.toString() !== post.postedBy.toString())
       if (req.user._id.toString() !== post.postedBy.toString()) {
         let newNotificationToPoster = new Notification({
           to: post.postedBy,
