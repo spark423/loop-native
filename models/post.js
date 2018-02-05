@@ -5,8 +5,8 @@ var postSchema = new mongoose.Schema({
   postedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
   board: {type: mongoose.Schema.Types.ObjectId, ref: 'Board'},
   flagged: {type: Boolean, default: false},
-  title: {type: String},
-  text: {type: String},
+  title: {type: String, default: ""},
+  text: {type: String, default: ""},
   comments: [{type: mongoose.Schema.Types.ObjectId, ref: 'Comment'}],
   followers: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
 });

@@ -5,6 +5,7 @@ var Board = require('../models/board');
 var Post = require('../models/post');
 var User = require('../models/user');
 var Event = require('../models/event');
+var contensort = require('./contentsort')
 
 module.exports = function(passport) {
   router.get('/boards', passport.authenticate('jwt', {session:false}), function(req, res) {
@@ -18,166 +19,38 @@ module.exports = function(passport) {
   })
   
   router.get('/boards/:id', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Board.findById(req.params.id).populate({path: 'contents.item', populate: [{path: 'attendees'}, {path: 'comments', populate: [{path: 'postedBy'},{path: 'comments', populate: [{path: 'postedBy'}]}]}]}).lean().exec(function(err, board) {
-      if (err) {
-        throw err;
-      } else if (board.private) {
-        let filteredContents = board.contents.filter(function(content) {return content.item && content.item.postedBy.toString() === req.user._id.toString()});
-        let contents = filteredContents.reverse().map(function(content) {
-          let item = content.item;
-          let comments = [];
-          for (let j=0; j<item.comments.length; j++) {
-            let comment = item.comments[j];
-            comments.push({
-            	"own": req.user._id.toString() === comment.postedBy._id.toString(),
-              "id": comment._id,
-              "own": req.user._id.toString() === comment.postedBy._id.toString(),
-              "createdAt": comment.createdAt,
-              "postedBy": {
-                "id": comment.postedBy._id,
-                "firstName": comment.postedBy.firstName,
-                "lastName": comment.postedBy.lastName
-              },
-              "text": comment.text,
-            });
-          }                           
-          let postObject = {
-            "own": true,
-            "following": req.user.followingPosts.indexOf(item._id) > -1,
-            "id": item._id,
-            "createdAt": item.createdAt,
-            "postedBy": {
-              "id": req.user._id,
-              "firstName": req.user.firstName,
-              "lastName": req.user.lastName,
-              "postCreator": req.user.username,
-              "isLoopUser": true
-            },    
-            "title": item.title,
-            "text": item.text,
-            "comments": comments
-          }
-          return postObject
-        });
-        res.json({
-          board: {
-            id: board._id,
-            create: board.create,
-            unsubscribable: board.unsubscribable,
-            name: board.name,
-            description: board.description,
-            contents: contents
-          }
-        })
+    let boardPromise = Board.find({_id: req.params.id}).limit(1).lean();
+    let postsPromise = boardPromise.then(async function(board) {
+      if (board[0].private) {
+        let posts = await Post.find({board: req.params.id, postedBy: req.user._id}).sort({createdAt: -1}).limit(100).populate('board').populate('postedBy').populate({path: 'comments', populate: 'postedBy'})
       } else {
-        let filteredContents = board.contents.filter(function(content) {
-          return content.item && req.user.blockers.indexOf(content.item.postedBy) === -1 && req.user.blocking.indexOf(content.item.postedBy) === -1 && !content.item.flagged
-        });
-        let contents = filteredContents.reverse().map(async function(content) {
-          let item = content.item;
-          let kind = content.kind;
-          let comments = [];
-          for (let j=0; j<item.comments.length; j++) {
-            let comment = item.comments[j];
-            comments.push({
-            	"own": req.user._id.toString() === comment.postedBy._id.toString(),            	
-              "id": comment._id,
-              "own": req.user._id.toString() === comment.postedBy._id.toString(),              
-              "createdAt": comment.createdAt,
-              "postedBy": {
-                "id": comment.postedBy._id,
-                "firstName": comment.postedBy.firstName,
-                "lastName": comment.postedBy.lastName
-              },
-              "text": comment.text,
-            });
-          }        
-          if (kind == 'Post') {
-            let postCreator = await User.findById(item.postedBy);
-            let postObject = {
-              "own": req.user._id.toString() === postCreator._id.toString(),
-              "following": req.user.followingPosts.indexOf(item._id) > -1,
-              "id": item._id,
-              "createdAt": item.createdAt,
-              "postedBy": {
-                "id": postCreator._id,
-                "firstName": postCreator.firstName,
-                "lastName": postCreator.lastName,
-                "postCreator": postCreator.username,
-                "isLoopUser": true
-              },   
-              "title": item.title,
-              "text": item.text,
-              "comments": comments
-            }               
-            return Promise.resolve(postObject)
-          } else {
-            let attendees = item.attendees.map(function(attendee) {
-              return {"id": attendee._id, "firstName": attendee.firstName, "lastName": attendee.lastName}
-            })
-            let eventCreator = await User.findOne({username: item.contact});
-            if (eventCreator) {
-              let eventObject = {
-                "own": req.user.username === item.contact,
-                "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
-                "id": item._id,
-                "createdAt": item.createdAt,
-                "postedBy": {
-                  "id": eventCreator._id,
-                  "firstName": eventCreator.firstName,
-                  "lastName": eventCreator.lastName,
-                  "username": eventCreator.username,
-                  "isLoopUser": true
-                },
-                "title": item.title,
-                "date": item.date,
-                "startTime": item.startTime || "",
-                "endTime": item.endTime || "",
-                "location": item.location || "",
-                "description": item.description,              
-                "comments": comments,
-                "attendees": attendees
-              }
-              return Promise.resolve(eventObject);              
-            } else {
-              let eventObject = {
-                "own": req.user.username === item.contact,
-                "attending": req.user.attendedEvents.indexOf(item._id) > -1,               
-                "id": item._id,
-                "createdAt": item.startTime,
-                "postedBy": {
-                  "id": "",
-                  "firstName": "",
-                  "lastName": "",
-                  "username": item.contact,
-                  "isLoopUser": false
-                },
-                "title": item.title,
-                "date": item.date,
-                "startTime": item.startTime || "",
-                "endTime": item.endTime || "",
-                "location": item.location || "",
-                "description": item.description,              
-                "comments": comments,
-                "attendees": attendees
-              };
-              return Promise.resolve(eventObject);
-            }
-          }
-        });
-        Promise.all(contents).then(function(contents) {       
-          res.json({
-            board: {
-              id: board._id,
-              create: board.create,
-              unsubscribable: board.unsubscribable,
-              name: board.name,
-              description: board.description,
-              contents: contents
-            }
-          })
-        })
+        let posts = await Post.find({board: req.params.id}).sort({createdAt: -1}).limit(100).populate('board').populate('postedBy').populate({path: 'comments', populate: {path: 'postedBy'}});;
+        return posts
       }
+    })
+    let eventsPromise = boardPromise.then(async function(board) {
+      let start = new Date();
+      let end = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);    
+      if (board[0].name === 'Events') {
+        let events = await Event.find({$and: [{date: {$gte: start}}, {date: {$lte: end}}]}).sort({EventDetailUpdatedDate: -1}).limit(100).populate('board').populate('attendees').populate({path: 'comments', populate: {path: 'postedBy'}});
+        return events
+      } else {
+        let events = await Event.find({board: req.params.id, $and: [{date: {$gte: start}}, {date: {$lte: end}}]}).sort({EventDetailUpdatedDate: -1}).limit(100).populate('board').populate({path: 'comments', populate: {path: 'postedBy'}});
+        return events
+      }
+    })
+    Promise.all([
+      boardPromise,
+      postsPromise,
+      eventsPromise
+    ])
+    .then(async function([board,posts,events]) {
+      let contents = contensort(posts,events,req.user);
+      res.json({contents: contents})
+    })
+    .catch(function(err) {
+      console.log(err);
+      res.status(500).send(err);
     })
   });
   
@@ -187,23 +60,21 @@ module.exports = function(passport) {
       board: req.params.id,
       title: req.body.title,
       text: req.body.text
-    })
-    newPost.save(function(err, newPost) {
-    	if (err) {
-        throw err;
-      }
-      Board.findOneAndUpdate({_id: req.params.id}, {$push: {contents: {"kind": "Post", "item": newPost._id}}}, function(err) {
-        if (err) {
-          throw err;
-        }
-        User.findOneAndUpdate({_id: req.user._id}, {$push: {posts: newPost._id}}, function(err) {
-          if (err) {
-            throw err;
-          }
-          res.json({success: true})
-        })
-      });
     });
+    let postPromise = newPost.save();
+    let boardPromise = postPromise.then(function(post) {
+      Board.findOneAndUpdate({_id: req.params.id}, {$push: {contents: {"kind": "Post", "item": post._id}}});
+    })
+    let userPromise = postPromise.then(function(post) {
+      User.findOneAndUpdate({_id: req.user._id}, {$push: {posts: post._id}});
+    })
+    Promise.all([postPromise,boardPromise,userPromise])
+    .then(function([post,board,user]) {
+      res.json({success: true});
+    })
+    .catch(function(err) {
+      res.status(500).send(err);
+    })
   })
 
   return router;
