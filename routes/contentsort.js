@@ -42,27 +42,39 @@ var remainder = function(i, j, posts, events, user) {
       let comments = []
       event.comments.forEach(function(comment) {
         comments.push({
-          own: user._id.toString() === comment.postedBy.id.toString(),
+          own: user._id.toString() === comment.postedBy._id.toString(),
           createdAt: comment.createdAt,
           postedBy: {
-            id: comment.postedBy.userId.toString(),
-            username: comment.username,
-            firstName: comment.firstName,
-            lastName: comment.lastName,
+            id: comment.postedBy._id.toString(),
+            username: comment.postedBy.username,
+            firstName: comment.postedBy.firstName,
+            lastName: comment.postedBy.lastName,
             isLoopUser: true
           },
           text: comment.text
         })
       })
+      let attendees = []
+      event.attendees.forEach(function(attendee) {
+        attendees.push({
+          id: attendee._id,
+          username: attendee.username,
+          firstName: attendee.firstName,
+          lastName: attendee.lastName
+        })
+      })      
+
       remainderEvents.push({
         createdAt: event.createdAt,
+        board: {id: event.board._id, name: event.board.name},        
         date: event.date,
         startTime: event.startTime || "",
         endTime: event.endTime || "",
         location: event.Location || event.location || "",
         title: event.title || "",
         description: event.description || "",
-        comments: comments
+        comments: comments,
+        attendees: attendees
       })
     })
     return remainderEvents    
@@ -112,27 +124,38 @@ module.exports = function(posts, events, user) {
       let comments = []
       events[j].comments.forEach(function(comment) {
         comments.push({
-          own: user._id.toString() === comment.postedBy.id.toString(),
+          own: user._id.toString() === comment.postedBy._id.toString(),
           createdAt: comment.createdAt,
           postedBy: {
-            _id: comment.postedBy.id.toString(),
-            username: comment.username,
-            firstName: comment.firstName,
-            lastName: comment.lastName,
+            _id: comment.postedBy._id.toString(),
+            username: comment.postedBy.username,
+            firstName: comment.postedBy.firstName,
+            lastName: comment.postedBy.lastName,
             isLoopUser: true
           },
           text: comment.text
         })
-      })      
+      })
+      let attendees = []
+      events[j].attendees.forEach(function(attendee) {
+        attendees.push({
+          id: attendee._id,
+          username: attendee.username,
+          firstName: attendee.firstName,
+          lastName: attendee.lastName
+        })
+      })          
       contents.push({
         createdAt: events[j].createdAt,
+        board: {id: events[j].board._id, name: events[j].board.name},        
         date: events[j].date,
         startTime: events[j].startTime || "",
         endTime: events[j].endTime || "",
         location: events[j].Location || events[j].location || "",
         title: events[j].title || "",
         description: events[j].description || "",
-        comments: comments
+        comments: comments,
+        attendees: attendees
       })
       j ++;
     }

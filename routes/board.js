@@ -35,7 +35,7 @@ module.exports = function(passport) {
         let events = await Event.find({$and: [{date: {$gte: start}}, {date: {$lte: end}}]}).sort({EventDetailUpdatedDate: -1}).limit(100).populate('board').populate('attendees').populate({path: 'comments', populate: {path: 'postedBy'}});
         return events
       } else {
-        let events = await Event.find({board: req.params.id, $and: [{date: {$gte: start}}, {date: {$lte: end}}]}).sort({EventDetailUpdatedDate: -1}).limit(100).populate('board').populate({path: 'comments', populate: {path: 'postedBy'}});
+        let events = await Event.find({board: req.params.id, $and: [{date: {$gte: start}}, {date: {$lte: end}}]}).sort({EventDetailUpdatedDate: -1}).limit(100).populate('board').populate('attendees').populate({path: 'comments', populate: {path: 'postedBy'}});
         return events
       }
     })
@@ -46,7 +46,13 @@ module.exports = function(passport) {
     ])
     .then(async function([board,posts,events]) {
       let contents = contensort(posts,events,req.user);
-      res.json({contents: contents})
+      res.json({
+        id: board[0]._id,
+        create: board[0].create,
+        name: board[0].name,
+        description: board[0].name,
+        contents: contents
+      })
     })
     .catch(function(err) {
       console.log(err);
