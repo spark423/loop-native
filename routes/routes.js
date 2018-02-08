@@ -17,7 +17,7 @@ module.exports = function(passport) {
 		res.end();
 	})
 
-	router.post('/signup', function(req, res) {
+	router.post('/signup', async function(req, res) {
 		if(!req.body.username || !req.body.password) {
 			res.json({ success: false, message: 'Please enter email and password.' });
 		} else if (req.body.password !== req.body.confirmPassword) {
@@ -25,32 +25,35 @@ module.exports = function(passport) {
 	  } else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
       res.json({ success: false, message: "Username must be a Haverford email."})
     } else {
-			let newUser = new User({
-				username: req.body.username.toLowerCase(),
-				password: req.body.password,
-				firstName: req.body.firstName,
-				lastName: req.body.lastName,
-				major: req.body.major,
-				classYear: req.body.classYear
-			});
-      newUser.save(function(err, newUser) {
-        if (err) {
-          res.json({ success: false, message: 'That email address already exists.'});
-        }
-        Group.findOneAndUpdate({admin: newUser.username}, {$push: {members: newUser._id}}, function(err, group) {
-        	if (err) {
-        		throw err;
-        	} else {
-            User.findOneAndUpdate({_id: newUser._id}, {$push: {adminGroups: group._id, joinedGroups: group._id}}, function(err, updatedUser) {
-            	if (err) {
-            		throw err;
-            	} else {
-                res.json({ success: true, message: 'Successfully created new user.'});           		
-            	}
-            })
-        	}
-        })
-      })
+			if(!req.body.username || !req.body.password) {
+				res.json({ success: false, message: 'Please enter email and password.' });
+			} else if (req.body.password !== req.body.confirmPassword) {
+				res.json({ success: false, message: "The two password fields don't match."})
+	  	} else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
+      	res.json({ success: false, message: "Username must be a Haverford email."})
+    	} else {
+				let newUser = new User({
+					username: req.body.username.toLowerCase(),
+					password: req.body.password,
+					firstName: req.body.firstName,
+					lastName: req.body.lastName,
+					major: req.body.major,
+					classYear: req.body.classYear
+				});
+      	newUser.save()
+       	.then(async function(user) {
+         	let group = await Group.findOneAndUpdate({admin: user.username}, {$push: {members: user._id}}).exec();
+         	if (group) {
+         		await User.findOneAndUpdate({_id: user._id}, {$push: {adminGroups: group._id, joinedGroups: group._id}}).exec();
+         	}
+       	})
+       	.then(function() {
+         	res.json({success: true});
+       	})
+       	.catch(function(err) {
+         	res.json({success: false, message: 'That email address already exists'});
+       	})
+    	}
     }
 	})
 
