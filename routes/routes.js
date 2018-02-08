@@ -22,16 +22,16 @@ module.exports = function(passport) {
 			res.json({ success: false, message: 'Please enter email and password.' });
 		} else if (req.body.password !== req.body.confirmPassword) {
 			res.json({ success: false, message: "The two password fields don't match."})
-	  } else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
-      res.json({ success: false, message: "Username must be a Haverford email."})
-    } else {
+        } else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
+            res.json({ success: false, message: "Username must be a Haverford email."})
+        } else {
 			if(!req.body.username || !req.body.password) {
 				res.json({ success: false, message: 'Please enter email and password.' });
 			} else if (req.body.password !== req.body.confirmPassword) {
 				res.json({ success: false, message: "The two password fields don't match."})
-	  	} else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
-      	res.json({ success: false, message: "Username must be a Haverford email."})
-    	} else {
+	  	    } else if (!req.body.username.toLowerCase().includes('@haverford.edu')) {
+                res.json({ success: false, message: "Username must be a Haverford email."})
+            } else {
 				let newUser = new User({
 					username: req.body.username.toLowerCase(),
 					password: req.body.password,
@@ -40,21 +40,21 @@ module.exports = function(passport) {
 					major: req.body.major,
 					classYear: req.body.classYear
 				});
-      	newUser.save()
-       	.then(async function(user) {
-         	let group = await Group.findOneAndUpdate({admin: user.username}, {$push: {members: user._id}}).exec();
-         	if (group) {
-         		await User.findOneAndUpdate({_id: user._id}, {$push: {adminGroups: group._id, joinedGroups: group._id}}).exec();
-         	}
-       	})
-       	.then(function() {
-         	res.json({success: true});
-       	})
-       	.catch(function(err) {
-         	res.json({success: false, message: 'That email address already exists'});
-       	})
-    	}
-    }
+                newUser.save()
+       	        .then(async function(user) {
+                    let group = await Group.findOneAndUpdate({admin: user.username}, {$push: {members: user._id}}).exec();
+                    if (group) {
+                        await User.findOneAndUpdate({_id: user._id}, {$push: {adminGroups: group._id, joinedGroups: group._id}}).exec();
+                    }
+                })
+       	        .then(function() {
+                    res.json({success: true});
+       	        })
+       	        .catch(function(err) {
+         	      res.json({success: false, message: 'That email address already exists'});
+       	        })
+            }
+        }
 	})
 
 	router.get('/login', function(req ,res) {
