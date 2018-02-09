@@ -6,9 +6,9 @@ var notificationSchema = new mongoose.Schema({
 	createdAt: {type: Date, default: Date.now},
 	message: {type: String},
 	routeID: {
-		kind: String,
+		kind: {type: String},
 		id: {type: mongoose.Schema.Types.ObjectId, refPath: 'source.kind'},
-		boardId: {type: mongoose.Schema.Types.ObjectId, refPath: 'Board'}
+		boardId: {type: mongoose.Schema.Types.Mixed, default: ""}
 	},
 	read: {type: Boolean, default: false},
 	readAt: {type: Date}
