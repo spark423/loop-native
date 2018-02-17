@@ -1,10 +1,14 @@
 var mongoose = require('mongoose');
 
-var groupSchema = new mongoose.Schema({  
+var groupSchema = new mongoose.Schema({
+  createdAt: {type: Date, default: Date.now},
   name: {type: String, required: true},
   description: {type: String},
   admin: {type: String},
-  members: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}]
+  archive: {type: Boolean, default: false},
+  active: {type: Boolean, default: true},
+  members: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
+
 });
 
 
