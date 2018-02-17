@@ -32,23 +32,15 @@ module.exports = function(passport) {
   }); 
 
   router.get('/drawer', passport.authenticate('jwt', { session: false }), function(req, res) {
-    Board.find({}, function(err, boards) {
-      if (err) {
-        throw err;
-      }
-      let boardsArray = boards.map(function(board) {
-        return {"id": board._id, "name": board.name, "asset": board.asset, "unsubscribable": board.unsubscribable, "subscribed": req.user.subscribedBoards.indexOf(board._id) > -1}
+    let boardsPromise = Board.aggregate([{$match: {$and: [{create: true},{archive: false}]}},{$project: {"id": "$_id", "_id": 0, "name": 1}}]);
+    let groupsPromise = Group.aggregate([{$match: {archive: false}},{$project: {"id": "$_id", "_id": 0, "name": 1}}]);
+    Promise.all([boardsPromise, groupsPromise])
+      .then(function([boards, groups]) {
+        res.json({boards: boards, groups: groups});
       })
-      Group.find({}, function(err, groups) {
-        if (err) {
-          throw err;
-        }
-        let groupsArray = groups.map(function(group) {
-          return {"id": group._id, "name": group.name}
-        });
-        res.json({boards: boardsArray, groups: groupsArray});       
+      .catch(function(err) {
+        res.status(500).send(err);
       })
-    })
   });     
   return router;
 }
