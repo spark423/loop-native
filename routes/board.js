@@ -8,9 +8,9 @@ var Event = require('../models/event');
 
 module.exports = function(passport) {
   router.get('/boards', passport.authenticate('jwt', {session:false}), function(req, res) {
-    Board.find({create: true}).select('name')
+  	Board.aggregate([{$match: {$and: [{create: true},{archive: false}]}},{$project: {"id": "$_id", "_id": 0, "name": 1}}])
     .then(function(boards) {
-      res.json({boards: boards})
+      res.json({boards: boards});
     })
     .catch(function(err) {
       res.status(500).send(err);
