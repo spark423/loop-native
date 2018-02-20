@@ -32,7 +32,7 @@ module.exports = function(passport) {
   }); 
 
   router.get('/drawer', passport.authenticate('jwt', { session: false }), function(req, res) {
-    let boardsPromise = Board.aggregate([{$match: {$and: [{create: true},{archive: false}]}},{$project: {"id": "$_id", "_id": 0, "name": 1}}]);
+    let boardsPromise = Board.aggregate([{$match: {$and: [{create: true},{archive: false}]}},{$project: {"id": "$_id", "_id": 0, "name": 1, "asset": 1}}]);
     let groupsPromise = Group.aggregate([{$match: {archive: false}},{$project: {"id": "$_id", "_id": 0, "name": 1}}]);
     Promise.all([boardsPromise, groupsPromise])
       .then(function([boards, groups]) {
